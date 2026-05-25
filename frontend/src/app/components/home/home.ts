@@ -1,0 +1,23 @@
+import { Component } from '@angular/core';
+import { HeroComponent } from '../hero/hero';
+import { HighlightsComponent } from '../highlights/highlights';
+import { AboutComponent } from '../about/about';
+import { ServicesComponent } from '../services/services';
+import { TestimonialsComponent } from '../testimonials/testimonials';
+import { ContactComponent } from '../contact/contact';
+
+@Component({
+  selector: 'app-home',
+  standalone: true,
+  // C'est ici que tu listes tout ce que tu affiches sur la page d'accueil
+  imports: [
+    HeroComponent, 
+    HighlightsComponent, 
+    AboutComponent, 
+    ServicesComponent, 
+    TestimonialsComponent, 
+    ContactComponent
+  ],
+  templateUrl: '../../home.component.html',
+})
+export class HomeComponent {}

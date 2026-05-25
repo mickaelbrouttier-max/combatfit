@@ -1,0 +1,40 @@
+<div class="app-wrapper">
+  <div class="content-container">
+    <div class="admin-panel">
+      <h1>Liste des réservations</h1>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Nom</th>
+            <th>Prestation</th>
+            <th>Date</th>
+            <th>Heure</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (res of reservations; track res.id) {
+            <tr>
+              <td data-label="Nom">{{ res.nom_client }}</td>
+              <td data-label="Prestation">{{ res.prestation }}</td>
+              <td data-label="Date">{{ res.date_debut | date:'dd/MM/yyyy' }}</td>
+              <td data-label="Heure">{{ res.date_debut | date:'HH:mm' }}</td>
+              <td data-label="Actions">
+                <button (click)="supprimer(res.id)">Supprimer</button>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="5" class="empty-message">Aucune réservation trouvée.</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+  
+  <footer>
+    <p>© 2026 Ton Site - Gestion des Rendez-vous</p>
+  </footer>
+</div>

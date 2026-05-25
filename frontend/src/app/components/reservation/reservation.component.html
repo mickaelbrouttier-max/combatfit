@@ -1,0 +1,28 @@
+<div class="booking-container">
+  <h4 class="booking-title">Choix du moment</h4>
+
+  <div class="date-selector-wrapper">
+    <label for="date" class="form-label">Sélectionner une date</label>
+    <input type="date" [min]="aujourdhui" id="date" class="date-input" (change)="onDateChange($event)">
+  </div>
+
+  <div *ngIf="dateSelectionnee">
+    <p class="slots-section-title">Créneaux disponibles de 1h30 pour le {{ dateSelectionnee }} :</p>
+    
+    <div class="slots-grid">
+      <button 
+        *ngFor="let c of creneauxTheoriques"
+        type="button" 
+        class="slot-btn"
+        [disabled]="estReserve(c.debut)" 
+        [class.indisponible]="estReserve(c.debut)"
+        [class.selected]="c.debut === heureSelectionnee"
+        (click)="choisirCreneau(c)">
+        
+        <span class="slot-time">{{ c.debut }} - {{ c.fin }}</span>
+        <span class="slot-status">{{ estReserve(c.debut) ? 'Indisponible' : 'Disponible' }}</span>
+        
+      </button>
+    </div>
+  </div>
+</div>

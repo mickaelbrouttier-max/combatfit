@@ -1,0 +1,152 @@
+/* --- Conteneur Principal --- */
+.booking-container {
+  background-color: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--dark-border);
+  border-radius: 8px;
+  padding: 30px;
+  margin: 20px 0;
+}
+
+.booking-title {
+  font-family: var(--font-headings);
+  font-size: 1.1rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-white);
+  margin-bottom: 16px;
+  letter-spacing: 0.03em;
+}
+
+/* --- Style du sélecteur de Date --- */
+.date-selector-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.date-input {
+  background-color: rgba(15, 15, 20, 0.6);
+  border: 1px solid var(--dark-border);
+  color: var(--text-white);
+  padding: 12px 16px;
+  border-radius: 6px;
+  font-size: 1rem;
+  outline: none;
+  transition: all 0.2s ease-in-out;
+  width: 100%;
+}
+
+/* Changement de couleur de l'icône calendrier natif pour matcher le thème */
+.date-input::-webkit-calendar-picker-indicator {
+  filter: invert(1) sepia(1) saturate(5) hue-rotate(340deg); /* Donne une teinte rouge/blanche */
+  cursor: pointer;
+}
+
+.date-input:focus {
+  border-color: var(--primary-red);
+  box-shadow: 0 0 10px rgba(208, 0, 0, 0.2);
+}
+
+/* --- Grille des Créneaux --- */
+.slots-section-title {
+  font-size: 0.95rem;
+  color: var(--text-light-grey);
+  margin-bottom: 12px;
+}
+
+.slots-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+/* --- Boutons de Créneaux --- */
+.slot-btn {
+  background-color: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--dark-border);
+  color: var(--text-white);
+  padding: 14px 10px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* État : Survol d'un créneau disponible */
+.slot-btn:hover:not([disabled]) {
+  background-color: rgba(208, 0, 0, 0.1);
+  border-color: var(--primary-red);
+  color: var(--text-white);
+  box-shadow: 0 0 12px rgba(208, 0, 0, 0.2);
+  transform: translateY(-2px);
+}
+
+/* Petit texte indicatif sous l'heure (Disponible / Occupé) */
+.slot-status {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #25D366; /* Vert par défaut */
+  opacity: 0.8;
+}
+
+/* État : Créneau Sélectionné (Celui que l'utilisateur clique) */
+.slot-btn.selected {
+  background-color: var(--primary-red) !important;
+  border-color: var(--primary-red) !important;
+  color: var(--text-white) !important;
+  box-shadow: 0 0 15px rgba(208, 0, 0, 0.4);
+}
+.slot-btn.selected .slot-status {
+  color: var(--text-white);
+}
+
+/* État : Créneau Occupé (Désactivé) */
+.slot-btn.indisponible {
+  background-color: #1c1c1f !important;
+  border-color: #27272a !important;
+  color: var(--text-muted) !important;
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.slot-btn.indisponible .slot-status {
+  color: #ef4444; /* Rouge pour dire bloqué */
+}
+/* Style par défaut du bouton */
+.slot-btn {
+  padding: 15px;
+  border: 1px solid #ddd;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: 0.3s;
+}
+
+/* Style quand le créneau est pris */
+.slot-btn.indisponible {
+  background-color: #f8f8f8;
+  color: #ccc;
+  cursor: not-allowed;
+  border-color: #eee;
+}
+
+/* Style quand l'utilisateur clique sur un créneau dispo */
+.slot-btn.selected {
+  background-color: var(--primary-red);
+  color: white;
+  border-color: var(--primary-red);
+}
+
+/* Optionnel : cacher le texte 'Disponible' si le bouton est sélectionné pour plus de sobriété */
+.slot-status {
+  font-size: 0.75rem;
+  display: block;
+  margin-top: 5px;
+}
