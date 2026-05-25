@@ -6,28 +6,25 @@ on:
       - main
 
 jobs:
-  deploy:
+  build-and-deploy:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout Code
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: '20'
 
-      - name: Install Dependencies
-        run: npm ci
-        working-directory: ./frontend # <--- IMPORTANT : On dit à GitHub d'aller dans frontend
+      - name: Install and Build
+        run: |
+          cd frontend
+          npm install
+          npm run build -- --base-href /combatfit/ # Remplace /combatfit/ par le nom de ton repo
 
-      - name: Build Angular App
-        run: npm run build -- --base-href /combatfit/
-        working-directory: ./frontend # <--- IMPORTANT ici aussi
-
-      - name: Deploy to GitHub Pages
-        uses: JamesIves/github-pages-deploy-action@v4
+      - name: Deploy
+        uses: peaceiris/actions-gh-pages@v3
         with:
-          folder: frontend/dist/mathias-karate/browser # <--- On a ajouté "frontend/" au début du chemin
-          branch: gh-pages
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./frontend/dist/mathias-karate/browser # Vérifie bien ce chemin après un build local !
