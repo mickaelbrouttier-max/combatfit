@@ -21,7 +21,7 @@ app.use(express.json());
 db.query("SET time_zone = '+02:00'");
 
 const transporter = nodemailer.createTransport({
-  host: 'smtp-brevo.com', 
+  host: 'smtp-relay.brevo.co', 
   port: 587,
   secure: false, 
   auth: {
