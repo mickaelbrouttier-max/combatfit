@@ -115,5 +115,7 @@ res.status(200).json({ success: true, message: "Réservation réussie !" });
     res.status(500).json({ error: "Erreur lors de l'enregistrement en base de données." });
   }
 });
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Serveur actif sur port ${PORT}`));
+const PORT = process.env.PORT || 10000;
+app.listen(PORT, '0.0.0.0', () => { 
+  console.log(`Serveur actif sur port ${PORT}`);
+});
