@@ -20,13 +20,15 @@ app.use(express.json());
 db.query("SET time_zone = '+02:00'");
 
 const transporter = nodemailer.createTransport({
-  host: 'smtp-relay.brevo.com',
+  host: 'smtp-brevo.com', 
   port: 587,
-  secure: false, // TLS
+  secure: false, 
   auth: {
-    user: process.env.EMAIL_USER, // Sera remplacé par ac7733001@smtp-brevo.com
-    pass: process.env.EMAIL_PASS  // Sera remplacé par ta clé API
-  }
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS
+  },
+  debug: true, 
+  logger: true 
 });
 
 // ROUTE GET : Récupération des créneaux occupés pour le calendrier
