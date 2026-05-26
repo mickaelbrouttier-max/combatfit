@@ -15,6 +15,7 @@ const dbConfig = {
     rejectUnauthorized: true
   }
 };
+console.log("Tentative de connexion à la base de données...");
 
 const db = mysql.createPool(dbConfig);
 
