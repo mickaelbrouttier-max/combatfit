@@ -21,6 +21,7 @@ import { BookingService } from '../../services/booking.service';
           <a href="#accueil" class="nav-link active">Accueil</a>
           <a href="#apropos" class="nav-link">À Propos</a>
           <a href="#services" class="nav-link">Services</a>
+          <a href="#videos" class="nav-link">Vidéos</a>
           <a href="#testimonials" class="nav-link">Témoignages</a>
           <a href="#contact" class="nav-link">Contact</a>
         </nav>
@@ -43,6 +44,7 @@ import { BookingService } from '../../services/booking.service';
           <a href="#accueil" (click)="closeMobileMenu()" class="mobile-link">Accueil</a>
           <a href="#apropos" (click)="closeMobileMenu()" class="mobile-link">À Propos</a>
           <a href="#services" (click)="closeMobileMenu()" class="mobile-link">Services</a>
+          <a href="#videos" (click)="closeMobileMenu()" class="mobile-link">Vidéos</a>
           <a href="#testimonials" (click)="closeMobileMenu()" class="mobile-link">Témoignages</a>
           <a href="#contact" (click)="closeMobileMenu()" class="mobile-link">Contact</a>
           <button class="btn btn-primary mobile-rdv-btn" (click)="bookAppointment(true)">

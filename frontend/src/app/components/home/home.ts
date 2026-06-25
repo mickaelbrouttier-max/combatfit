@@ -3,6 +3,7 @@ import { HeroComponent } from '../hero/hero';
 import { HighlightsComponent } from '../highlights/highlights';
 import { AboutComponent } from '../about/about';
 import { ServicesComponent } from '../services/services';
+import { VideosComponent } from '../videos/videos';
 import { TestimonialsComponent } from '../testimonials/testimonials';
 import { ContactComponent } from '../contact/contact';
 
@@ -15,6 +16,7 @@ import { ContactComponent } from '../contact/contact';
     HighlightsComponent, 
     AboutComponent, 
     ServicesComponent, 
+    VideosComponent,
     TestimonialsComponent, 
     ContactComponent
   ],
