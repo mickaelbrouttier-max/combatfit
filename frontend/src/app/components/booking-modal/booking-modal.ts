@@ -31,7 +31,7 @@ import { ReservationComponent } from "../reservation/reservation.component";
       <strong>{{ formData.date }} à {{ formData.time }}</strong> a bien été enregistrée.
     </p>
     <p class="success-desc-sub">
-      Un e-mail récapitulatif a été envoyé au formateur. Mathias te recontactera très prochainement pour confirmer ton rendez-vous.
+      Un e-mail de confirmation t'a été envoyé (pense à vérifier tes spams). Mathias te recontactera très prochainement pour confirmer ton rendez-vous.
     </p>
     <button class="btn btn-primary close-success-btn" (click)="closeModal()">Fermer</button>
   </div>
@@ -180,7 +180,6 @@ this.http.post(`${baseUrl}/api/reservations`, payload).subscribe({
       this.isSubmitting.set(false);
       this.isSuccess.set(true);
 
-        alert("Réservation enregistrée avec succès ! Un e-mail a été transmis au formateur.");
         if (this.reservationComp) {
           // 1. Mise à jour du Set local pour un feedback instantané
           this.reservationComp.creneauxOccupes.add(this.formData.time);
