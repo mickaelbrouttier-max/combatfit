@@ -12,9 +12,10 @@ const dbConfig = {
   port: process.env.DB_PORT,
   ssl: {
     ca: fs.readFileSync(path.join(__dirname, '../ca.pem')),
-    rejectUnauthorized: true
+    rejectUnauthorized: false
   }
 };
+console.log("Tentative de connexion à la base de données...");
 
 const db = mysql.createPool(dbConfig);
 

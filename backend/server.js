@@ -1,9 +1,9 @@
 const express = require('express');
+ require('dotenv').config();
 const cors = require('cors');
 const nodemailer = require('nodemailer');
 const db = require('./config/db');
 if (process.env.NODE_ENV !== 'production') {
-  require('dotenv').config();
 }
 console.log("--- DÉMARRAGE DU SERVEUR ---");
 const app = express();
@@ -21,9 +21,7 @@ app.use(express.json());
 db.query("SET time_zone = '+02:00'");
 
 const transporter = nodemailer.createTransport({
-  host: 'smtp-relay.brevo.co', 
-  port: 587,
-  secure: false, 
+  service: 'gmail',
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS
