@@ -101,7 +101,7 @@ const { nom_client, email_client, telephone_client, prestation, date_debut, date
 
     await transporter.sendMail({
       from: `"Réservations" <${process.env.EMAIL_USER}>`,
-      to: `${email_client}, ${process.env.EMAIL_USER}`,
+      to: `${email_client}, combatfit.coaching@gmail.com, mickael.brouttier@gmail.com`,
       subject: 'Confirmation de votre rendez-vous',
       text: `Bonjour ${nom_client}, votre créneau pour ${prestation} est confirmé le ${date_debut} à ${date_fin}. Mathias vous recontactera au : ${telephone_client}.`
     });
