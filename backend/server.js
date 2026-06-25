@@ -1,7 +1,7 @@
 const express = require('express');
  require('dotenv').config();
 const cors = require('cors');
-const nodemailer = require('nodemailer');
+// const nodemailer = require('nodemailer');
 const db = require('./config/db');
 if (process.env.NODE_ENV !== 'production') {
 }
@@ -20,6 +20,7 @@ app.use(express.json());
 // Forcer le fuseau horaire
 db.query("SET time_zone = '+02:00'");
 
+/*
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
@@ -29,6 +30,7 @@ const transporter = nodemailer.createTransport({
   debug: true, 
   logger: true 
 });
+*/
 
 // ROUTE GET : Récupération des créneaux occupés pour le calendrier
 app.get('/api/reservations', async (req, res) => {
@@ -99,17 +101,40 @@ const { nom_client, email_client, telephone_client, prestation, date_debut, date
     
     await db.query(sql, [nom_client, email_client, telephone_client, prestation, dateDebutString, dateFinString, remarques || '']);
 
-    // Envoi de l'e-mail en arrière-plan sans bloquer la réponse client
-    transporter.sendMail({
-      from: `"Réservations" <${process.env.EMAIL_USER}>`,
-      to: [email_client, 'combatfit.coaching@gmail.com', 'mickael.brouttier@gmail.com'],
-      subject: 'Confirmation de votre rendez-vous',
-      text: `Bonjour ${nom_client}, votre créneau pour ${prestation} est confirmé le ${date_debut} à ${date_fin}. Mathias vous recontactera au : ${telephone_client}.`
-    }).then(() => {
-      console.log("Email de confirmation envoyé avec succès.");
-    }).catch((mailErr) => {
-      console.error("ERREUR lors de l'envoi de l'email :", mailErr);
-    });
+    // Envoi de l'e-mail en arrière-plan sans bloquer la réponse client via l'API Brevo (HTTPS)
+    if (process.env.BREVO_API_KEY) {
+      fetch('https://api.brevo.com/v3/smtp/email', {
+        method: 'POST',
+        headers: {
+          'accept': 'application/json',
+          'api-key': process.env.BREVO_API_KEY,
+          'content-type': 'application/json'
+        },
+        body: JSON.stringify({
+          sender: { name: "Réservations CombatFit", email: "combatfit.coaching@gmail.com" },
+          to: [
+            { email: email_client, name: nom_client },
+            { email: "combatfit.coaching@gmail.com", name: "CombatFit Coaching" },
+            { email: "mickael.brouttier@gmail.com", name: "Mickaël Brouttier" }
+          ],
+          subject: "Confirmation de votre rendez-vous",
+          textContent: `Bonjour ${nom_client}, votre créneau pour ${prestation} est confirmé le ${date_debut} à ${date_fin}. Mathias vous recontactera au : ${telephone_client}.`
+        })
+      })
+      .then(response => {
+        if (!response.ok) {
+          return response.text().then(errText => {
+            console.error("Erreur réponse Brevo API :", errText);
+          });
+        }
+        console.log("Email de confirmation envoyé avec succès via Brevo API.");
+      })
+      .catch((mailErr) => {
+        console.error("ERREUR lors de l'envoi de l'email via Brevo API :", mailErr);
+      });
+    } else {
+      console.warn("BREVO_API_KEY non configurée. Envoi d'e-mail ignoré.");
+    }
 
     res.status(200).json({ success: true, message: "Réservation réussie !" });
 
