@@ -1,40 +1,177 @@
 <div class="app-wrapper">
   <div class="content-container">
     <div class="admin-panel">
-      <h1>Liste des réservations</h1>
+      <div class="admin-header">
+        <h1>Gestion des Réservations</h1>
+        <div class="view-toggle">
+          <button [class.active]="vueActive === 'calendrier'" (click)="vueActive = 'calendrier'">
+            <span class="material-icons-outlined">calendar_month</span> Calendrier
+          </button>
+          <button [class.active]="vueActive === 'liste'" (click)="vueActive = 'liste'">
+            <span class="material-icons-outlined">list</span> Liste
+          </button>
+        </div>
+      </div>
 
-      <table>
-        <thead>
-          <tr>
-            <th>Nom</th>
-            <th>Prestation</th>
-            <th>Date</th>
-            <th>Heure</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (res of reservations; track res.id) {
+      <!-- VUE CALENDRIER -->
+      @if (vueActive === 'calendrier') {
+        <div class="calendar-wrapper">
+          <div class="calendar-nav">
+            <button class="nav-btn" (click)="moisPrecedent()">
+              <span class="material-icons-outlined">chevron_left</span>
+            </button>
+            <h2 class="calendar-month-label">{{ labelMois }}</h2>
+            <button class="nav-btn" (click)="moisSuivant()">
+              <span class="material-icons-outlined">chevron_right</span>
+            </button>
+          </div>
+
+          <div class="calendar-grid">
+            <!-- Jours de la semaine -->
+            @for (jour of joursSemaine; track $index) {
+              <div class="calendar-day-header">{{ jour }}</div>
+            }
+
+            <!-- Cases des jours -->
+            @for (jour of joursCalendrier; track $index) {
+              <div class="calendar-day-cell" 
+                   [class.hors-mois]="!jour.estMoisActuel"
+                   [class.contient-res]="jour.reservations.length > 0">
+                
+                <span class="day-number">{{ jour.numero }}</span>
+                
+                <div class="day-reservations">
+                  @for (res of jour.reservations; track res.id) {
+                    <div class="res-item" 
+                         [class.preparation]="res.prestation === 'Préparation Physique'"
+                         [class.karate]="res.prestation === 'Coaching Karaté'"
+                         [class.suivi]="res.prestation === 'Suivi en Ligne'"
+                         [class.intervention]="res.prestation === 'Interventions'"
+                         (click)="ouvrirDetails(res)">
+                      <span class="res-time">{{ res.date_debut.substring(11, 16) }}</span>
+                      <span class="res-client">{{ res.nom_client }}</span>
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- VUE LISTE (TABLEAU CLASSIQUE) -->
+      @if (vueActive === 'liste') {
+        <table>
+          <thead>
             <tr>
-              <td data-label="Nom">{{ res.nom_client }}</td>
-              <td data-label="Prestation">{{ res.prestation }}</td>
-              <td data-label="Date">{{ res.date_debut | date:'dd/MM/yyyy' }}</td>
-              <td data-label="Heure">{{ res.date_debut | date:'HH:mm' }}</td>
-              <td data-label="Actions">
-                <button (click)="supprimer(res.id)">Supprimer</button>
-              </td>
+              <th>Nom</th>
+              <th>Prestation</th>
+              <th>Date</th>
+              <th>Heure</th>
+              <th>Actions</th>
             </tr>
-          } @empty {
-            <tr>
-              <td colspan="5" class="empty-message">Aucune réservation trouvée.</td>
-            </tr>
-          }
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            @for (res of reservations; track res.id) {
+              <tr class="clickable-row" (click)="ouvrirDetails(res)">
+                <td data-label="Nom">{{ res.nom_client }}</td>
+                <td data-label="Prestation">{{ res.prestation }}</td>
+                <td data-label="Date">{{ res.date_debut | date:'dd/MM/yyyy' }}</td>
+                <td data-label="Heure">{{ res.date_debut | date:'HH:mm' }}</td>
+                <td data-label="Actions" (click)="$event.stopPropagation()">
+                  <button class="delete-btn" (click)="supprimer(res.id)">Supprimer</button>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="5" class="empty-message">Aucune réservation trouvée.</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
     </div>
   </div>
-  
+
+  <!-- MODAL DE DÉTAILS DE LA RÉSERVATION -->
+  @if (reservationSelectionnee) {
+    <div class="modal-backdrop" (click)="fermerDetails()">
+      <div class="modal-dialog animate-fade-in-up" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3 class="modal-title">Détails du Rendez-vous</h3>
+          <button class="close-btn" (click)="fermerDetails()" aria-label="Close modal">
+            <span class="material-icons-outlined">close</span>
+          </button>
+        </div>
+
+        <div class="modal-body">
+          <div class="detail-section">
+            <h4 class="section-title">Client</h4>
+            <div class="detail-grid">
+              <div class="detail-item">
+                <span class="detail-label">Nom</span>
+                <span class="detail-value">{{ reservationSelectionnee.nom_client }}</span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">Téléphone</span>
+                <a href="tel:{{ reservationSelectionnee.telephone_client }}" class="detail-value link-style">
+                  {{ reservationSelectionnee.telephone_client }}
+                </a>
+              </div>
+              <div class="detail-item full-width">
+                <span class="detail-label">Email</span>
+                <a href="mailto:{{ reservationSelectionnee.email_client }}" class="detail-value link-style">
+                  {{ reservationSelectionnee.email_client }}
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <div class="detail-section">
+            <h4 class="section-title">Séance</h4>
+            <div class="detail-grid">
+              <div class="detail-item">
+                <span class="detail-label">Prestation</span>
+                <span class="detail-value badge-prestation"
+                      [class.preparation]="reservationSelectionnee.prestation === 'Préparation Physique'"
+                      [class.karate]="reservationSelectionnee.prestation === 'Coaching Karaté'"
+                      [class.suivi]="reservationSelectionnee.prestation === 'Suivi en Ligne'"
+                      [class.intervention]="reservationSelectionnee.prestation === 'Interventions'">
+                  {{ reservationSelectionnee.prestation }}
+                </span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">Date</span>
+                <span class="detail-value">{{ reservationSelectionnee.date_debut | date:'dd MMMM yyyy' }}</span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">Créneau</span>
+                <span class="detail-value">
+                  {{ reservationSelectionnee.date_debut.substring(11, 16) }} - {{ calculerHeureFin(reservationSelectionnee.date_debut) }} (1h30)
+                </span>
+              </div>
+            </div>
+          </div>
+
+          @if (reservationSelectionnee.remarques) {
+            <div class="detail-section">
+              <h4 class="section-title">Remarques ou objectifs</h4>
+              <p class="notes-text">{{ reservationSelectionnee.remarques }}</p>
+            </div>
+          }
+        </div>
+
+        <div class="modal-footer">
+          <button class="btn-cancel" (click)="supprimer(reservationSelectionnee.id)">
+            <span class="material-icons-outlined">delete</span> Supprimer le rendez-vous
+          </button>
+          <button class="btn-close-modal" (click)="fermerDetails()">Fermer</button>
+        </div>
+      </div>
+    </div>
+  }
+
   <footer>
-    <p>© 2026 Ton Site - Gestion des Rendez-vous</p>
+    <p>© 2026 CombatFit - Gestion des Rendez-vous</p>
   </footer>
 </div>
