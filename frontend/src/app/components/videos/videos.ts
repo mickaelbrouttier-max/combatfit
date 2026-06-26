@@ -24,7 +24,7 @@ interface VideoItem {
           <h2 class="section-title">Mes combats en vidéo</h2>
           <div class="header-line"></div>
           <p class="section-desc">
-            Vois la technique et l'intensité du karaté de compétition. Suis mon parcours complet durant le championnat de département, du premier combat jusqu'à la grande finale.
+            Découvre mes combats et démonstrations techniques en vidéo. Retrouve mes parcours en championnats départemental et régional, ainsi que mes katas présentés pour mon passage de grade (2ème Dan).
           </p>
         </div>
 
@@ -106,8 +106,15 @@ interface VideoItem {
             <!-- Video Info & Pagination -->
             <div class="modal-info">
               <div class="modal-info-header">
-                <span class="modal-category">Combat {{ getSelectedIndex() + 1 }}</span>
+                <span class="modal-category">{{ video.category || ('Combat ' + (getSelectedIndex() + 1)) }}</span>
                 <span class="modal-counter">{{ getSelectedIndex() + 1 }} / {{ videos.length }}</span>
+              </div>
+
+              <div class="modal-text-content" style="margin-top: 10px; margin-bottom: 15px;">
+                <h3 class="modal-video-title" style="margin: 0; font-size: 1.15rem; font-weight: 700; color: var(--text-white);">{{ video.title }}</h3>
+                @if (video.subtitle) {
+                  <p class="modal-video-subtitle" style="margin: 4px 0 0 0; font-size: 0.85rem; color: var(--text-muted);">{{ video.subtitle }}</p>
+                }
               </div>
               
               <!-- Direct selector dots -->
@@ -614,6 +621,48 @@ export class VideosComponent implements AfterViewInit {
       title: 'Combat département finale 1',
       subtitle: 'Grande finale or',
       category: 'Grande Finale'
+    },
+    {
+      id: 'Px2gI8lkS4k',
+      title: 'Combat région 1',
+      subtitle: 'Premier combat régional',
+      category: 'Combat Régional 1'
+    },
+    {
+      id: '6v1-V0IEz7s',
+      title: 'Combat région 2',
+      subtitle: 'Deuxième combat régional',
+      category: 'Combat Régional 2'
+    },
+    {
+      id: 'KRBDMy70Qok',
+      title: 'Combat région 3',
+      subtitle: 'Troisième combat régional',
+      category: 'Combat Régional 3'
+    },
+    {
+      id: 'CcOFZdhmoAA',
+      title: 'Combat région 4',
+      subtitle: 'Quart de finale régional',
+      category: 'Quart de Finale Régional'
+    },
+    {
+      id: 'mt0Pe5I7sN8',
+      title: 'Combat région 5',
+      subtitle: 'Demi-finale régionale',
+      category: 'Demi-Finale Régionale'
+    },
+    {
+      id: '1qtSLaX1lZU',
+      title: 'Bassai Dai',
+      subtitle: 'Kata présenté pour le passage du 2ème Dan',
+      category: 'Passage 2e Dan'
+    },
+    {
+      id: 'WuXmUUmvq-M',
+      title: 'Enpi',
+      subtitle: 'Kata présenté pour le passage du 2ème Dan',
+      category: 'Passage 2e Dan'
     }
   ].map(v => ({
     ...v,
