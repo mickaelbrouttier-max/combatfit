@@ -1,4 +1,4 @@
-import { Component, signal, inject, HostListener } from '@angular/core';
+import { Component, signal, inject, HostListener, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 
@@ -28,27 +28,45 @@ interface VideoItem {
           </p>
         </div>
 
-        <!-- Video Grid -->
-        <div class="videos-grid">
-          @for (video of videos; track video.id; let idx = $index) {
-            <div class="video-card animate-fade-in-up" 
-                 [style.animation-delay]="(idx * 0.08) + 's'" 
-                 (click)="openVideo(video)">
-              <div class="card-visual">
-                <img [src]="video.thumbnailUrl" [alt]="video.title" class="card-img" loading="lazy" />
-                <div class="card-overlay">
-                  <div class="play-button-badge">
-                    <span class="material-icons-outlined">play_arrow</span>
+        <!-- Video Carousel -->
+        <div class="carousel-wrapper">
+          <!-- Control Buttons -->
+          <button 
+            class="carousel-nav-btn prev" 
+            [class.disabled]="!canScrollLeft()"
+            [disabled]="!canScrollLeft()"
+            (click)="scroll('left', track)"
+            aria-label="Vidéos précédentes"
+          >
+            <span class="material-icons-outlined">keyboard_arrow_left</span>
+          </button>
+
+          <div class="carousel-track" #track (scroll)="checkScroll(track)">
+            @for (video of videos; track video.id; let idx = $index) {
+              <div class="video-card animate-fade-in-up" 
+                   [style.animation-delay]="(idx * 0.08) + 's'" 
+                   (click)="openVideo(video)">
+                <div class="card-visual">
+                  <img [src]="video.thumbnailUrl" [alt]="'Combat ' + (idx + 1)" class="card-img" loading="lazy" />
+                  <div class="card-overlay">
+                    <div class="play-button-badge">
+                      <span class="material-icons-outlined">play_arrow</span>
+                    </div>
                   </div>
                 </div>
-                <span class="category-badge">{{ video.category }}</span>
               </div>
-              <div class="card-body">
-                <h3 class="video-title">{{ video.title }}</h3>
-                <p class="video-subtitle">{{ video.subtitle }}</p>
-              </div>
-            </div>
-          }
+            }
+          </div>
+
+          <button 
+            class="carousel-nav-btn next" 
+            [class.disabled]="!canScrollRight()"
+            [disabled]="!canScrollRight()"
+            (click)="scroll('right', track)"
+            aria-label="Vidéos suivantes"
+          >
+            <span class="material-icons-outlined">keyboard_arrow_right</span>
+          </button>
         </div>
       </div>
 
@@ -88,11 +106,9 @@ interface VideoItem {
             <!-- Video Info & Pagination -->
             <div class="modal-info">
               <div class="modal-info-header">
-                <span class="modal-category">{{ video.category }}</span>
+                <span class="modal-category">Combat {{ getSelectedIndex() + 1 }}</span>
                 <span class="modal-counter">{{ getSelectedIndex() + 1 }} / {{ videos.length }}</span>
               </div>
-              <h3 class="modal-title">{{ video.title }}</h3>
-              <p class="modal-desc">{{ video.subtitle }} — Championnat Départemental</p>
               
               <!-- Direct selector dots -->
               <div class="modal-navigation-dots">
@@ -100,7 +116,7 @@ interface VideoItem {
                   <button class="dot" 
                           [class.active]="v.id === video.id" 
                           (click)="selectByIndex(idx)"
-                          [attr.aria-label]="'Aller au ' + v.title">
+                          [attr.aria-label]="'Aller au combat ' + (idx + 1)">
                   </button>
                 }
               </div>
@@ -157,35 +173,34 @@ interface VideoItem {
       margin: 0 auto;
       line-height: 1.6;
     }
-    
-    .videos-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
+
+    /* Carousel layout styles */
+    .carousel-wrapper {
+      position: relative;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      padding: 0 50px;
+    }
+
+    .carousel-track {
+      display: flex;
       gap: 24px;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      scroll-behavior: smooth;
+      scrollbar-width: none; /* Firefox */
+      width: 100%;
+      padding: 12px 0; /* Space for hover shadow/transform */
     }
 
-    @media (max-width: 1200px) {
-      .videos-grid {
-        grid-template-columns: repeat(3, 1fr);
-      }
-    }
-
-    @media (max-width: 900px) {
-      .videos-grid {
-        grid-template-columns: repeat(2, 1fr);
-      }
-    }
-
-    @media (max-width: 600px) {
-      .videos-grid {
-        grid-template-columns: 1fr;
-      }
-      .section-title {
-        font-size: 1.8rem;
-      }
+    .carousel-track::-webkit-scrollbar {
+      display: none; /* Safari and Chrome */
     }
     
     .video-card {
+      flex: 0 0 calc(33.333% - 16px);
+      scroll-snap-align: start;
       background-color: var(--dark-card);
       border-radius: var(--border-radius-md);
       overflow: hidden;
@@ -193,7 +208,6 @@ interface VideoItem {
       cursor: pointer;
       display: flex;
       flex-direction: column;
-      height: 100%;
       transition: var(--transition-medium);
       opacity: 0; /* managed by animate-fade-in-up */
     }
@@ -201,12 +215,12 @@ interface VideoItem {
     .video-card:hover {
       transform: translateY(-8px);
       border-color: rgba(208, 0, 0, 0.35);
-      box-shadow: 0 10px 25px rgba(208, 0, 0, 0.15);
+      box-shadow: 0 10px 25px rgba(208, 0, 0, 0.2);
     }
     
     .card-visual {
       position: relative;
-      height: 160px;
+      aspect-ratio: 16 / 9;
       width: 100%;
       overflow: hidden;
       background-color: #000;
@@ -261,45 +275,48 @@ interface VideoItem {
     
     .play-button-badge span {
       font-size: 1.8rem;
-      margin-left: 2px; /* Center the play triangle arrow properly */
+      margin-left: 2px;
     }
-    
-    .category-badge {
+
+    /* Carousel Nav Buttons */
+    .carousel-nav-btn {
       position: absolute;
-      top: 12px;
-      left: 12px;
-      background-color: rgba(0, 0, 0, 0.6);
+      top: 50%;
+      transform: translateY(-50%);
+      background-color: rgba(10, 10, 12, 0.7);
+      color: var(--text-white);
       border: 1px solid rgba(255, 255, 255, 0.15);
-      backdrop-filter: blur(4px);
-      color: var(--text-white);
-      font-size: 0.65rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      padding: 4px 8px;
-      border-radius: 4px;
-    }
-    
-    .card-body {
-      padding: 20px;
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
       display: flex;
-      flex-direction: column;
-      flex-grow: 1;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      backdrop-filter: blur(8px);
+      z-index: 10;
+      transition: var(--transition-medium);
     }
-    
-    .video-title {
-      font-size: 1.05rem;
-      font-weight: 800;
-      text-transform: uppercase;
-      margin-bottom: 6px;
-      letter-spacing: -0.01em;
+
+    .carousel-nav-btn:hover:not(.disabled) {
+      background-color: var(--primary-red);
+      border-color: var(--primary-red);
+      box-shadow: var(--glow-red);
       color: var(--text-white);
     }
-    
-    .video-subtitle {
-      font-size: 0.85rem;
-      color: var(--text-muted);
-      line-height: 1.4;
+
+    .carousel-nav-btn.disabled {
+      opacity: 0.25;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+
+    .carousel-nav-btn.prev {
+      left: -12px;
+    }
+
+    .carousel-nav-btn.next {
+      right: -12px;
     }
 
     /* Lightbox Modal Styles */
@@ -449,24 +466,11 @@ interface VideoItem {
       color: var(--text-muted);
     }
 
-    .modal-title {
-      font-size: 1.4rem;
-      font-weight: 800;
-      text-transform: uppercase;
-      color: var(--text-white);
-      margin-bottom: 6px;
-    }
-
-    .modal-desc {
-      font-size: 0.9rem;
-      color: var(--text-muted);
-    }
-
     .modal-navigation-dots {
       display: flex;
       justify-content: center;
       gap: 10px;
-      margin-top: 20px;
+      margin-top: 10px;
     }
 
     .dot {
@@ -507,7 +511,28 @@ interface VideoItem {
       }
     }
 
-    /* Responsive adjustments for modal */
+    /* Responsive adjustments for carousel and modal */
+    @media (max-width: 1200px) {
+      .video-card {
+        flex: 0 0 calc(33.333% - 16px);
+      }
+    }
+
+    @media (max-width: 900px) {
+      .video-card {
+        flex: 0 0 calc(50% - 12px);
+      }
+      .carousel-wrapper {
+        padding: 0 30px;
+      }
+      .carousel-nav-btn {
+        width: 40px;
+        height: 40px;
+      }
+      .carousel-nav-btn.prev { left: -5px; }
+      .carousel-nav-btn.next { right: -5px; }
+    }
+
     @media (max-width: 768px) {
       .modal-backdrop {
         padding: 12px;
@@ -520,14 +545,32 @@ interface VideoItem {
       .next-btn { right: 8px; }
       .nav-arrow-btn span { font-size: 1.5rem; }
       .modal-info { padding: 16px 20px; }
-      .modal-title { font-size: 1.15rem; }
       .modal-desc { font-size: 0.8rem; }
+    }
+
+    @media (max-width: 600px) {
+      .video-card {
+        flex: 0 0 100%;
+      }
+      .carousel-wrapper {
+        padding: 0 10px;
+      }
+      .carousel-nav-btn {
+        display: none;
+      }
+      .carousel-track {
+        padding: 5px 0;
+      }
     }
   `]
 })
-export class VideosComponent {
+export class VideosComponent implements AfterViewInit {
   private readonly sanitizer = inject(DomSanitizer);
   readonly selectedVideo = signal<VideoItem | null>(null);
+
+  @ViewChild('track') trackElement!: ElementRef<HTMLDivElement>;
+  readonly canScrollLeft = signal(false);
+  readonly canScrollRight = signal(true);
 
   readonly videos: VideoItem[] = [
     {
@@ -577,6 +620,14 @@ export class VideosComponent {
     thumbnailUrl: `https://img.youtube.com/vi/${v.id}/hqdefault.jpg`,
     embedUrl: this.sanitizer.bypassSecurityTrustResourceUrl(`https://www.youtube.com/embed/${v.id}?autoplay=1&rel=0&modestbranding=1`)
   }));
+
+  ngAfterViewInit(): void {
+    if (this.trackElement && typeof window !== 'undefined') {
+      setTimeout(() => {
+        this.checkScroll(this.trackElement.nativeElement);
+      }, 150);
+    }
+  }
 
   // Keyboard navigation
   @HostListener('window:keydown', ['$event'])
@@ -629,5 +680,18 @@ export class VideosComponent {
     if (index >= 0 && index < this.videos.length) {
       this.selectedVideo.set(this.videos[index]);
     }
+  }
+
+  checkScroll(track: HTMLDivElement): void {
+    this.canScrollLeft.set(track.scrollLeft > 5);
+    this.canScrollRight.set(
+      track.scrollLeft + track.clientWidth < track.scrollWidth - 5
+    );
+  }
+
+  scroll(direction: 'left' | 'right', track: HTMLDivElement): void {
+    const cardWidth = track.firstElementChild ? (track.firstElementChild as HTMLElement).offsetWidth + 24 : 300;
+    const scrollAmount = direction === 'left' ? -cardWidth : cardWidth;
+    track.scrollBy({ left: scrollAmount, behavior: 'smooth' });
   }
 }
