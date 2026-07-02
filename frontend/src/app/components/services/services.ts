@@ -24,6 +24,10 @@ interface ServiceItem {
           <p class="section-subtitle">Mes Services</p>
           <h2 class="section-title">Un accompagnement complet et adapté à tes objectifs</h2>
           <div class="header-line"></div>
+          <p class="section-pricing-info">
+            <span class="pricing-label">Séance individuelle :</span> 
+            <span class="price-value">35 €</span> pour 1h30
+          </p>
         </div>
 
         <!-- Services Cards Grid -->
@@ -102,6 +106,23 @@ interface ServiceItem {
       height: 3px;
       background-color: var(--primary-red);
       margin: 0 auto;
+    }
+
+    .section-pricing-info {
+      margin-top: 20px;
+      font-size: 1.1rem;
+      color: var(--text-grey);
+    }
+
+    .pricing-label {
+      font-weight: 500;
+      margin-right: 6px;
+    }
+
+    .price-value {
+      color: var(--primary-red);
+      font-weight: 800;
+      font-size: 1.35rem;
     }
     
     .services-grid {

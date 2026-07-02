@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { HeroComponent } from '../hero/hero';
 import { HighlightsComponent } from '../highlights/highlights';
 import { AboutComponent } from '../about/about';
+import { GalleryComponent } from '../gallery/gallery';
 import { ServicesComponent } from '../services/services';
 import { VideosComponent } from '../videos/videos';
 import { TestimonialsComponent } from '../testimonials/testimonials';
@@ -15,6 +16,7 @@ import { ContactComponent } from '../contact/contact';
     HeroComponent, 
     HighlightsComponent, 
     AboutComponent, 
+    GalleryComponent,
     ServicesComponent, 
     VideosComponent,
     TestimonialsComponent, 

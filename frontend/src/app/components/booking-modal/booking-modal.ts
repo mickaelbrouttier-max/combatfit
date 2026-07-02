@@ -38,6 +38,11 @@ import { ReservationComponent } from "../reservation/reservation.component";
 
 
             } @else {
+              <div class="modal-pricing-banner">
+                <span class="material-icons-outlined info-icon">sell</span>
+                <span>Tarif : <strong>35 €</strong> pour une séance de <strong>1h30</strong></span>
+              </div>
+
               <form (ngSubmit)="submitForm()" #bookingForm="ngForm">
                 <div class="form-group">
                   <label for="service-select" class="form-label">Prestation souhaitée</label>
@@ -84,7 +89,7 @@ import { ReservationComponent } from "../reservation/reservation.component";
     }
   `,
   styles: [`
-  .form-select {
+    .form-select {
       background-color: #18181b; /* Fond sombre */
       color: #ffffff;
       border: 1px solid #3f3f46;
@@ -106,8 +111,8 @@ import { ReservationComponent } from "../reservation/reservation.component";
       background-color: #d00000; /* Ton rouge caractéristique */
       color: white;
     }
-  .success-desc { font-size: 1.1rem; line-height: 1.6; color: #e4e4e7; margin-bottom: 20px; }
-.success-desc-sub { font-size: 0.95rem; color: #a1a1aa; font-style: italic; margin-bottom: 25px; }
+    .success-desc { font-size: 1.1rem; line-height: 1.6; color: #e4e4e7; margin-bottom: 20px; }
+    .success-desc-sub { font-size: 0.95rem; color: #a1a1aa; font-style: italic; margin-bottom: 25px; }
     .modal-backdrop { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: rgba(5, 5, 7, 0.85); backdrop-filter: blur(12px); z-index: 2000; display: flex; align-items: center; justify-content: center; padding: 20px; }
     .modal-dialog { background-color: var(--dark-surface); border: 1px solid var(--dark-border); border-radius: var(--border-radius-md); width: 100%; max-width: 580px; max-height: 90vh; display: flex; flex-direction: column; overflow: hidden; box-shadow: var(--shadow-lg), 0 0 40px rgba(208, 0, 0, 0.15); animation: fadeInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
     .modal-header { padding: 20px 24px; border-bottom: 1px solid var(--dark-border); display: flex; align-items: center; justify-content: space-between; }
@@ -118,6 +123,25 @@ import { ReservationComponent } from "../reservation/reservation.component";
     .submit-btn:disabled { background-color: #3f3f46; cursor: not-allowed; }
     .success-container { text-align: center; padding: 30px 10px; }
     .success-icon { color: #25D366; font-size: 4rem; margin-bottom: 16px; }
+    .modal-pricing-banner {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background-color: rgba(208, 0, 0, 0.1);
+      border: 1px solid rgba(208, 0, 0, 0.25);
+      border-radius: var(--border-radius-sm);
+      padding: 12px 16px;
+      margin-bottom: 20px;
+      color: #e4e4e7;
+      font-size: 0.95rem;
+    }
+    .modal-pricing-banner .info-icon {
+      color: var(--primary-red);
+      font-size: 1.25rem;
+    }
+    .modal-pricing-banner strong {
+      color: #ffffff;
+    }
     @media (max-width: 600px) { .form-row { flex-direction: column; gap: 0; } }
   `]
 })
