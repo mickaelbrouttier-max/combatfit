@@ -111,7 +111,7 @@ const { nom_client, email_client, telephone_client, prestation, date_debut, date
           'content-type': 'application/json'
         },
         body: JSON.stringify({
-          sender: { name: "Réservations CombatFit", email: "mickael.brouttier@gmail.com" },
+          sender: { name: "Réservations CombatFit", email: "combatfit.coaching@gmail.com" },
           to: [
             { email: email_client, name: nom_client },
             { email: "combatfit.coaching@gmail.com", name: "CombatFit Coaching" },
