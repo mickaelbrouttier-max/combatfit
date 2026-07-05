@@ -310,6 +310,31 @@ export class GalleryComponent {
       image: 'images/about_matthias.png',
       title: 'Préparation Physique',
       description: 'Le conditionnement physique ciblé, la clé pour booster l\'explosivité et prévenir les blessures.'
+    },
+    {
+      image: 'images/karate_stage.jpg',
+      title: 'Événements & Rapprochement',
+      description: 'Partage de moments conviviaux et d\'entraide lors des rassemblements et des stages de karaté.'
+    },
+    {
+      image: 'images/karate_amis.png',
+      title: 'Esprit de Groupe',
+      description: 'Le karaté est aussi une aventure humaine, faite d\'amitié, de respect mutuel et de soutien.'
+    },
+    {
+      image: 'images/karate_groupe.jpg',
+      title: 'Stage Collectif',
+      description: 'Une communauté soudée et passionnée, réunie autour d\'entraînements collectifs et intenses.'
+    },
+    {
+      image: 'images/karate_transmission.jpg',
+      title: 'Pédagogie & Jeunesse',
+      description: 'Accompagner la nouvelle génération dans l\'apprentissage des valeurs fondamentales des arts martiaux.'
+    },
+    {
+      image: 'images/karate_partenaires.jpg',
+      title: 'Partage & Partenariat',
+      description: 'L\'esprit d\'entraide et de complicité entre pratiquants, unis par le même amour du karaté.'
     }
   ];
 
