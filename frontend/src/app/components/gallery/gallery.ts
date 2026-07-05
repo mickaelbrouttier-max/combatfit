@@ -302,11 +302,6 @@ export class GalleryComponent {
       description: 'Le plaisir de partager et d\'enseigner la passion du karaté au dojo, avec exigence et convivialité.'
     },
     {
-      image: 'images/hero_kick.png',
-      title: 'Technique & Précision',
-      description: 'Le karaté comme art de la précision, de la vitesse et de la maîtrise absolue du mouvement.'
-    },
-    {
       image: 'images/about_matthias.png',
       title: 'Préparation Physique',
       description: 'Le conditionnement physique ciblé, la clé pour booster l\'explosivité et prévenir les blessures.'
