@@ -89,7 +89,7 @@ import { Router } from '@angular/router';
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 80px 20px;
+      padding: 80px 20px 140px 20px;
       background-color: var(--dark-bg);
       background-image: radial-gradient(circle at 10% 20%, rgba(208, 0, 0, 0.05) 0%, transparent 40%),
                         radial-gradient(circle at 90% 80%, rgba(255, 255, 255, 0.02) 0%, transparent 40%);
@@ -212,6 +212,8 @@ import { Router } from '@angular/router';
       padding: 12px 16px;
       font-size: 0.95rem;
       transition: var(--transition-fast);
+      width: 100%;
+      box-sizing: border-box;
     }
 
     .form-group input:focus {
@@ -333,7 +335,11 @@ export class MemberAuthComponent {
       },
       error: (err) => {
         this.loading.set(false);
-        this.errorMessage.set(err.error?.message || err.error?.error || "Une erreur est survenue lors de l'authentification.");
+        let msg = err.error?.message || err.error?.error || "Une erreur est survenue lors de l'authentification.";
+        if (err.error?.details) {
+          msg += ` (Détails : ${err.error.details})`;
+        }
+        this.errorMessage.set(msg);
       }
     });
   }

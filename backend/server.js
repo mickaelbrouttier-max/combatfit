@@ -247,7 +247,7 @@ app.post('/api/auth/signup', async (req, res) => {
     res.status(201).json({ token, user: { id: newUserId, email, nom, prenom, level: 1, xp: 0, points: 0, code_parrainage } });
   } catch (err) {
     console.error("Erreur Inscription :", err);
-    res.status(500).json({ error: "Erreur serveur lors de la création du compte." });
+    res.status(500).json({ error: "Erreur serveur lors de la création du compte.", details: err.message });
   }
 });
 
@@ -490,7 +490,7 @@ app.post('/api/rewards/redeem', authMiddleware, async (req, res) => {
   }
 });
 
-const PORT = process.env.PORT || 10000;
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Serveur actif sur port ${PORT}`);
 });
