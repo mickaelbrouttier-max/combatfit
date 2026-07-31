@@ -1,6 +1,7 @@
 import { Component, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { BookingService } from '../../services/booking.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-navbar',
@@ -8,7 +9,7 @@ import { BookingService } from '../../services/booking.service';
   template: `
     <header class="navbar" [class.scrolled]="isScrolled()">
       <div class="navbar-container">
-        <a href="#accueil" class="logo-area">
+        <a href="#accueil" class="logo-area" (click)="goToHome()">
           <img src="images/logo_torii.png" alt="Torii Gate Logo" class="logo-img" />
           <div class="logo-text">
             <span class="logo-title">COACHING KARATÉ</span>
@@ -22,8 +23,12 @@ import { BookingService } from '../../services/booking.service';
           <a href="#apropos" class="nav-link">À Propos</a>
           <a href="#services" class="nav-link">Services</a>
           <a href="#videos" class="nav-link">Vidéos</a>
+          <a href="#galerie" class="nav-link">Galerie</a>
           <a href="#testimonials" class="nav-link">Témoignages</a>
           <a href="#contact" class="nav-link">Contact</a>
+          <a (click)="goToMemberSpace()" class="nav-link member-nav-link" style="cursor: pointer;">
+            {{ isLoggedIn() ? 'Mon Espace' : 'Espace Membre' }}
+          </a>
         </nav>
 
         <div class="nav-actions">
@@ -45,8 +50,12 @@ import { BookingService } from '../../services/booking.service';
           <a href="#apropos" (click)="closeMobileMenu()" class="mobile-link">À Propos</a>
           <a href="#services" (click)="closeMobileMenu()" class="mobile-link">Services</a>
           <a href="#videos" (click)="closeMobileMenu()" class="mobile-link">Vidéos</a>
+          <a href="#galerie" (click)="closeMobileMenu()" class="mobile-link">Galerie</a>
           <a href="#testimonials" (click)="closeMobileMenu()" class="mobile-link">Témoignages</a>
           <a href="#contact" (click)="closeMobileMenu()" class="mobile-link">Contact</a>
+          <a (click)="goToMemberSpace(true)" class="mobile-link" style="cursor: pointer;">
+            {{ isLoggedIn() ? 'Mon Espace' : 'Espace Membre' }}
+          </a>
           <button class="btn btn-primary mobile-rdv-btn" (click)="bookAppointment(true)">
             Prendre RDV
           </button>
@@ -61,11 +70,7 @@ import { BookingService } from '../../services/booking.service';
   left: 0;
   width: 100%;
   height: var(--header-height);
-  /* Remplace rgba(10, 10, 12, 0.7) par du noir pur */
   background-color: #000000; 
-  /* Si tu veux garder un effet moderne, tu peux mettre une opacité très forte */
-  /* background-color: rgba(0, 0, 0, 0.95); */
-  
   backdrop-filter: blur(16px);
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
   z-index: 1000;
@@ -85,6 +90,7 @@ import { BookingService } from '../../services/booking.service';
       display: flex;
       align-items: center;
       gap: 12px;
+      cursor: pointer;
     }
     
     .logo-img {
@@ -95,7 +101,6 @@ import { BookingService } from '../../services/booking.service';
       filter: drop-shadow(0 0 5px rgba(208, 0, 0, 0.3));
       transition: var(--transition-medium);
     }
-    
     
     .logo-text {
       display: flex;
@@ -153,6 +158,15 @@ import { BookingService } from '../../services/booking.service';
     .nav-link:hover::after, .nav-link.active::after {
       width: 100%;
     }
+
+    .member-nav-link {
+      color: #ff4d4d;
+      font-weight: 700;
+    }
+
+    .member-nav-link::after {
+      background-color: var(--text-white);
+    }
     
     .nav-actions {
       display: flex;
@@ -173,7 +187,6 @@ import { BookingService } from '../../services/booking.service';
       padding: 4px;
     }
     
-    /* Mobile Menu drawer */
     .mobile-menu {
       top: var(--header-height);
       left: 0;
@@ -217,7 +230,6 @@ import { BookingService } from '../../services/booking.service';
       margin-top: 16px;
     }
     
-    /* Responsive media queries */
     @media (max-width: 992px) {
       .nav-menu {
         display: none;
@@ -231,6 +243,7 @@ import { BookingService } from '../../services/booking.service';
 })
 export class NavbarComponent {
   private readonly bookingService = inject(BookingService);
+  private readonly router = inject(Router);
 
   readonly isMobileMenuOpen = signal(false);
   readonly isScrolled = signal(false);
@@ -240,6 +253,26 @@ export class NavbarComponent {
       window.addEventListener('scroll', () => {
         this.isScrolled.set(window.scrollY > 50);
       });
+    }
+  }
+
+  isLoggedIn(): boolean {
+    if (typeof window === 'undefined') return false;
+    return !!localStorage.getItem('member_token');
+  }
+
+  goToHome() {
+    this.router.navigate(['/']);
+  }
+
+  goToMemberSpace(isMobile: boolean = false) {
+    if (isMobile) {
+      this.closeMobileMenu();
+    }
+    if (this.isLoggedIn()) {
+      this.router.navigate(['/espace-membre']);
+    } else {
+      this.router.navigate(['/connexion']);
     }
   }
 

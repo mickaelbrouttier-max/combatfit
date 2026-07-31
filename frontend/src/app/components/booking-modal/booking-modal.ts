@@ -169,6 +169,28 @@ export class BookingModalComponent {
       const selected = this.bookingService.selectedService();
       if (selected) this.formData.service = selected;
     });
+
+    effect(() => {
+      if (this.bookingService.isOpen()) {
+        this.prefillUserInfo();
+      }
+    });
+  }
+
+  prefillUserInfo() {
+    if (typeof window !== 'undefined') {
+      const userJson = localStorage.getItem('member_user');
+      if (userJson) {
+        try {
+          const user = JSON.parse(userJson);
+          this.formData.name = `${user.prenom} ${user.nom}`;
+          this.formData.email = user.email;
+          this.formData.phone = user.telephone || '';
+        } catch (e) {
+          console.error(e);
+        }
+      }
+    }
   }
 
   onCreneauRecu(data: { date: string; heureDebut: string; heureFin: string }) {
@@ -185,19 +207,28 @@ export class BookingModalComponent {
   submitForm() {
     console.log("CLIC DETECTE : La fonction submitForm est appelée !");
     this.isSubmitting.set(true);
-const baseUrl = window.location.hostname === 'localhost' 
-  ? 'http://localhost:3000' 
-  : 'https://combatfit.onrender.com';
+    const baseUrl = window.location.hostname === 'localhost' 
+      ? 'http://localhost:3000' 
+      : 'https://combatfit.onrender.com';
 
- const payload = {
-  nom_client: this.formData.name,
-  email_client: this.formData.email,
-  telephone_client: this.formData.phone,
-  prestation: this.formData.service,
-  date_debut: this.formData.date, // Attention, c'est ce que le serveur attend en 1er
-  date_fin: this.formData.time,   // Et ça en 2ème pour le calcul
-  remarques: this.formData.notes
-};
+    const userJson = typeof window !== 'undefined' ? localStorage.getItem('member_user') : null;
+    let userId = null;
+    if (userJson) {
+      try {
+        userId = JSON.parse(userJson).id;
+      } catch (e) {}
+    }
+
+    const payload = {
+      nom_client: this.formData.name,
+      email_client: this.formData.email,
+      telephone_client: this.formData.phone,
+      prestation: this.formData.service,
+      date_debut: this.formData.date,
+      date_fin: this.formData.time,
+      remarques: this.formData.notes,
+      user_id: userId
+    };
 
 this.http.post(`${baseUrl}/api/reservations`, payload).subscribe({
     next: () => {

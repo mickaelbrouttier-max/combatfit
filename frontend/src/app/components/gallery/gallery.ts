@@ -292,6 +292,11 @@ export class GalleryComponent {
 
   readonly items: GalleryItem[] = [
     {
+      image: 'images/karate_podium_marseille.jpg',
+      title: 'Podium à Marseille',
+      description: 'Fierté et réussite sur le podium lors de la compétition à Marseille.'
+    },
+    {
       image: 'images/karate_podium.jpg',
       title: 'Podium de Compétition',
       description: 'Championnats et podiums - La récompense du travail, de la rigueur et de la régularité sur les tatamis.'
