@@ -72,7 +72,7 @@ interface RewardItem {
           
           <div class="profile-info-right">
             <div class="stat-box">
-              <span class="material-icons-outlined stat-icon trophy">military_tech</span>
+              <span class="material-icons-outlined stat-icon trophy">emoji_events</span>
               <div class="stat-vals">
                 <span class="stat-number">{{ profile()?.points }}</span>
                 <span class="stat-label">Trophées</span>
@@ -279,7 +279,7 @@ interface RewardItem {
                 <p class="tab-subtitle">Échangez vos trophées contre des cadeaux exclusifs CombatFit.</p>
               </div>
               <div class="trophy-count-header">
-                <span class="material-icons-outlined">military_tech</span>
+                <span class="material-icons-outlined">emoji_events</span>
                 <span>{{ profile()?.points }} trophées dispo</span>
               </div>
             </div>
@@ -305,15 +305,22 @@ interface RewardItem {
 
             <div class="rewards-grid">
               <div *ngFor="let r of rewards()" class="reward-card">
-                <div class="reward-image-placeholder">
-                  <span class="material-icons-outlined reward-gift-icon">card_giftcard</span>
+                <div class="reward-image-container" [class.tshirt-container]="r.nom.includes('T-Shirt')">
+                  <ng-container *ngIf="r.nom.includes('T-Shirt')">
+                    <img src="images/tshirt_front.png" class="reward-img tshirt-front" [alt]="r.nom" />
+                    <img src="images/tshirt_back.png" class="reward-img tshirt-back" [alt]="r.nom" />
+                  </ng-container>
+                  <img *ngIf="r.nom.includes('Séance')" src="images/service_physique.png" [alt]="r.nom" class="reward-img" />
+                  <div *ngIf="!r.nom.includes('T-Shirt') && !r.nom.includes('Séance')" class="reward-image-placeholder">
+                    <span class="material-icons-outlined reward-gift-icon">card_giftcard</span>
+                  </div>
                 </div>
                 <div class="reward-details">
                   <h4 class="reward-name">{{ r.nom }}</h4>
                   <p class="reward-desc">{{ r.description }}</p>
                   <div class="reward-bottom">
                     <span class="reward-cost">
-                      <span class="material-icons-outlined cost-icon">military_tech</span>
+                      <span class="material-icons-outlined cost-icon">emoji_events</span>
                       {{ r.cout_points }} Trophées
                     </span>
                     <button 
@@ -1650,6 +1657,43 @@ interface RewardItem {
       width: 100%;
       margin-top: 10px;
     }
+
+    /* Style des images cadeaux boutique */
+    .reward-image-container {
+      height: 160px;
+      position: relative;
+      overflow: hidden;
+      background-color: rgba(255, 255, 255, 0.01);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .reward-img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      padding: 10px;
+      transition: opacity 0.4s ease, transform 0.4s ease;
+    }
+
+    .tshirt-container .tshirt-back {
+      position: absolute;
+      top: 0;
+      left: 0;
+      opacity: 0;
+    }
+
+    .tshirt-container:hover .tshirt-front {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+
+    .tshirt-container:hover .tshirt-back {
+      opacity: 1;
+      transform: scale(1.05);
+    }
     }
   `]
 })
@@ -2092,7 +2136,20 @@ export class MemberDashboardComponent implements OnInit {
   getLinePath(): string {
     const pts = this.getChartPoints();
     if (pts.length === 0) return '';
-    return pts.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
+    if (pts.length === 1) return `M ${pts[0].x} ${pts[0].y}`;
+    if (pts.length === 2) return `M ${pts[0].x} ${pts[0].y} L ${pts[1].x} ${pts[1].y}`;
+
+    let path = `M ${pts[0].x} ${pts[0].y}`;
+    for (let i = 0; i < pts.length - 1; i++) {
+      const curr = pts[i];
+      const next = pts[i + 1];
+      const cpX1 = curr.x + (next.x - curr.x) / 3;
+      const cpY1 = curr.y;
+      const cpX2 = curr.x + 2 * (next.x - curr.x) / 3;
+      const cpY2 = next.y;
+      path += ` C ${cpX1} ${cpY1}, ${cpX2} ${cpY2}, ${next.x} ${next.y}`;
+    }
+    return path;
   }
 
   getAreaPath(): string {
