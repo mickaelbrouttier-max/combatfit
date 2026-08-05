@@ -582,7 +582,65 @@ interface RewardItem {
                 <span *ngIf="!reviewSaving()">Publier l'avis (+50 🏆)</span>
                 <span *ngIf="reviewSaving()" class="spinner btn-spinner"></span>
               </button>
+             </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Level Up (Martial Arts Style) -->
+      <div *ngIf="activeLevelUpNotification()" class="unlock-backdrop levelup-backdrop">
+        <div class="unlock-card levelup-card">
+          <!-- Ceinture de combat animée en arrière-plan -->
+          <div class="unlock-glow-container levelup-glow">
+            <div class="unlock-rays levelup-rays"></div>
+          </div>
+          
+          <div class="unlock-content">
+            <span class="unlock-title levelup-title">NOUVEAU NIVEAU DÉVERROUILLÉ !</span>
+            
+            <div class="levelup-belt-container">
+              <div class="belt-stripe-large" [ngClass]="getBeltClass(activeLevelUpNotification()?.newLevel || 1)">
+                <span class="belt-text">NIVEAU {{ activeLevelUpNotification()?.newLevel }}</span>
+              </div>
             </div>
+            
+            <h3 class="unlock-badge-name">CEINTURE {{ activeLevelUpNotification()?.belt | uppercase }}</h3>
+            <p class="unlock-badge-desc">Félicitations pour votre progression constante ! Mathias est fier de votre engagement.</p>
+            
+            <button (click)="activeLevelUpNotification.set(null)" class="unlock-confirm-btn levelup-confirm-btn">
+              <span class="material-icons-outlined">sports_martial_arts</span> Continuer l'entraînement
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Objectif Complété (Succès / Haut Fait Style) -->
+      <div *ngIf="activeObjectiveNotification()" class="unlock-backdrop obj-completed-backdrop">
+        <div class="unlock-card obj-completed-card">
+          <div class="unlock-glow-container obj-glow">
+            <div class="unlock-rays obj-rays"></div>
+          </div>
+          
+          <div class="unlock-content">
+            <span class="unlock-title obj-completed-title">DÉFI COMPLÉTÉ !</span>
+            
+            <div class="obj-completed-showcase">
+              <div class="obj-completed-circle">
+                <span class="material-icons-outlined obj-completed-icon">emoji_events</span>
+              </div>
+            </div>
+            
+            <h3 class="unlock-badge-name">{{ activeObjectiveNotification()?.title }}</h3>
+            <p class="unlock-badge-desc">{{ activeObjectiveNotification()?.desc }}</p>
+            
+            <div class="obj-completed-reward">
+              <span>Récompense : </span>
+              <span class="reward-val">{{ activeObjectiveNotification()?.reward }}</span>
+            </div>
+            
+            <button (click)="activeObjectiveNotification.set(null)" class="unlock-confirm-btn obj-confirm-btn">
+              <span class="material-icons-outlined">workspace_premium</span> Génial !
+            </button>
           </div>
         </div>
       </div>
@@ -1882,6 +1940,8 @@ export class MemberDashboardComponent implements OnInit {
     return list.filter(b => b.unlocked && !this.seenBadges.includes(b.id)).length;
   });
   activeUnlockNotification = signal<BadgeItem | null>(null);
+  activeLevelUpNotification = signal<{ oldLevel: number; newLevel: number; belt: string } | null>(null);
+  activeObjectiveNotification = signal<{ title: string; reward: string; desc: string } | null>(null);
 
   activeTab = signal<'seances' | 'progression' | 'badges' | 'boutique' | 'objectifs' | 'profile'>('seances');
   activeMetric = signal<'poids' | 'pompes' | 'gainage'>('poids');
@@ -1945,18 +2005,54 @@ export class MemberDashboardComponent implements OnInit {
     // 1. Profil
     this.http.get<UserProfile>(`${api}/member/profile`, { headers }).subscribe({
       next: (data) => {
+        const prevProfile = this.profile();
         this.profile.set(data);
         this.profileData.nom = data.nom;
         this.profileData.prenom = data.prenom;
         this.profileData.telephone = data.telephone || '';
         localStorage.setItem('member_user', JSON.stringify(data));
+
+        // Détection de montée de niveau (Level Up)
+        if (prevProfile && data.niveau > prevProfile.niveau) {
+          this.activeLevelUpNotification.set({
+            oldLevel: prevProfile.niveau,
+            newLevel: data.niveau,
+            belt: this.getBeltName(data.niveau)
+          });
+        }
       },
       error: () => this.logout()
     });
 
     // 2. Réservations
     this.http.get<any[]>(`${api}/member/reservations`, { headers }).subscribe({
-      next: (data) => this.reservations.set(data),
+      next: (data) => {
+        const prevRes = this.reservations();
+        this.reservations.set(data);
+
+        // Détection d'objectifs de séances / réservations
+        if (prevRes.length > 0) {
+          // Première réservation
+          if (prevRes.length === 0 && data.length > 0) {
+            this.activeObjectiveNotification.set({
+              title: "Première Réservation",
+              reward: "+50 🏆",
+              desc: "Félicitations pour votre premier rendez-vous de coaching !"
+            });
+          }
+          
+          // Première séance effectuée
+          const prevCompleted = prevRes.filter(r => this.isPastDate(r.date_debut)).length;
+          const currentCompleted = data.filter(r => this.isPastDate(r.date_debut)).length;
+          if (prevCompleted === 0 && currentCompleted > 0) {
+            this.activeObjectiveNotification.set({
+              title: "Première Séance Effectuée",
+              reward: "+100 🏆",
+              desc: "Vous avez validé votre premier entraînement officiel !"
+            });
+          }
+        }
+      },
       error: (err) => console.error(err)
     });
 
@@ -2084,7 +2180,11 @@ export class MemberDashboardComponent implements OnInit {
       next: (res) => {
         if (res.pointsBonus > 0) {
           this.loadAllData();
-          alert(`Objectifs consultés : +5 Trophées déverrouillés !`);
+          this.activeObjectiveNotification.set({
+            title: "Consultation des Objectifs",
+            reward: "+5 🏆",
+            desc: "Félicitations ! Vous avez consulté la liste de vos défis CombatFit."
+          });
         }
       },
       error: (err) => console.error(err)
@@ -2102,11 +2202,15 @@ export class MemberDashboardComponent implements OnInit {
       next: (res) => {
         this.profileSaving.set(false);
         this.loadAllData();
-        let msg = "Votre profil a bien été enregistré !";
         if (res.pointsBonus > 0) {
-          msg += ` Félicitations : +10 Trophées gagnés pour avoir complété votre profil !`;
+          this.activeObjectiveNotification.set({
+            title: "Profil Complété",
+            reward: "+10 🏆",
+            desc: "Félicitations ! Vous avez renseigné vos coordonnées de contact."
+          });
+        } else {
+          alert("Votre profil a bien été enregistré !");
         }
-        alert(msg);
       },
       error: (err) => {
         this.profileSaving.set(false);
@@ -2127,9 +2231,14 @@ export class MemberDashboardComponent implements OnInit {
         this.packBuying.set(false);
         if (typeof window !== 'undefined') {
           localStorage.setItem('pack_bought', 'true');
+          localStorage.setItem('pack_bought_date', new Date().toISOString());
         }
         this.loadAllData();
-        alert(res.message);
+        this.activeObjectiveNotification.set({
+          title: "Achat d'un Pack",
+          reward: "+150 🏆",
+          desc: "Félicitations ! Vous avez acheté un pack d'entraînement CombatFit."
+        });
       },
       error: (err) => {
         this.packBuying.set(false);
@@ -2184,7 +2293,11 @@ export class MemberDashboardComponent implements OnInit {
         this.reviewSaving.set(false);
         this.activeReviewReservation.set(null);
         this.loadAllData();
-        alert(res.message);
+        this.activeObjectiveNotification.set({
+          title: "Avis Publié",
+          reward: "+50 🏆",
+          desc: "Merci d'avoir laissé votre avis ! Vos remarques aident Mathias à perfectionner ses séances."
+        });
       },
       error: (err) => {
         this.reviewSaving.set(false);
