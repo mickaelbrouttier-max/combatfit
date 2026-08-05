@@ -303,7 +303,7 @@ interface RewardItem {
     .dashboard-section {
       background-color: var(--dark-bg);
       color: var(--text-white);
-      padding: 60px 0;
+      padding: 30px 0 60px 0;
       min-height: 85vh;
     }
 

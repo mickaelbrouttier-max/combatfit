@@ -78,6 +78,7 @@ body {
   flex: 1;
   display: flex;
   flex-direction: column;
+  padding-top: var(--header-height);
 }
 
 /* Headings */

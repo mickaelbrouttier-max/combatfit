@@ -89,7 +89,7 @@ import { Router } from '@angular/router';
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 80px 20px 140px 20px;
+      padding: 40px 20px 120px 20px;
       background-color: var(--dark-bg);
       background-image: radial-gradient(circle at 10% 20%, rgba(208, 0, 0, 0.05) 0%, transparent 40%),
                         radial-gradient(circle at 90% 80%, rgba(255, 255, 255, 0.02) 0%, transparent 40%);

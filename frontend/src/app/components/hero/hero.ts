@@ -51,6 +51,7 @@ import { BookingService } from '../../services/booking.service';
   `,
   styles: [`
     .hero-section {
+      margin-top: calc(-1 * var(--header-height));
       height: 100vh;
       min-height: 700px;
       display: flex;
