@@ -11,7 +11,7 @@ const app = express();
 // Configuration CORS optimisée pour accepter toutes les origines
 app.use(cors({
   origin: 'https://mickaelbrouttier-max.github.io', // Ton domaine exact
-  methods: ['GET', 'POST', 'DELETE', 'OPTIONS'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
 }));
