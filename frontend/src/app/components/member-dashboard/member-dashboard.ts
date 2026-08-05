@@ -17,6 +17,7 @@ interface UserProfile {
   code_parrainage: string;
   profil_complete?: boolean;
   objectifs_visites?: boolean;
+  created_at?: string;
 }
 
 interface StatRecord {
@@ -37,6 +38,7 @@ interface BadgeItem {
   type: string;
   seuil: number;
   unlocked: boolean;
+  date_obtention?: string;
 }
 
 interface RewardItem {
@@ -352,6 +354,7 @@ interface RewardItem {
                   </div>
                   <div class="obj-status-group">
                     <span class="obj-status-badge success">Réalisé</span>
+                    <span class="obj-date-label" *ngIf="getObjectiveDate('creation')">le {{ getObjectiveDate('creation') }}</span>
                     <span class="obj-reward completed">+10 🏆</span>
                   </div>
                 </div>
@@ -367,6 +370,7 @@ interface RewardItem {
                   </div>
                   <div class="obj-status-group">
                     <span class="obj-status-badge success">Réalisé</span>
+                    <span class="obj-date-label" *ngIf="getObjectiveDate('objectifs')">le {{ getObjectiveDate('objectifs') }}</span>
                     <span class="obj-reward completed">+5 🏆</span>
                   </div>
                 </div>
@@ -386,6 +390,7 @@ interface RewardItem {
                     <span class="obj-status-badge" [class.success]="profile()?.profil_complete">
                       {{ profile()?.profil_complete ? 'Réalisé' : 'À faire' }}
                     </span>
+                    <span class="obj-date-label" *ngIf="profile()?.profil_complete && getObjectiveDate('profil')">le {{ getObjectiveDate('profil') }}</span>
                     <span class="obj-reward" [class.completed]="profile()?.profil_complete">+10 🏆</span>
                   </div>
                 </div>
@@ -405,6 +410,7 @@ interface RewardItem {
                     <span class="obj-status-badge" [class.success]="hasReservations()">
                       {{ hasReservations() ? 'Réalisé' : 'À faire' }}
                     </span>
+                    <span class="obj-date-label" *ngIf="hasReservations() && getObjectiveDate('reservation')">le {{ getObjectiveDate('reservation') }}</span>
                     <span class="obj-reward" [class.completed]="hasReservations()">+50 🏆</span>
                   </div>
                 </div>
@@ -424,6 +430,7 @@ interface RewardItem {
                     <span class="obj-status-badge" [class.success]="hasCompletedSession()">
                       {{ hasCompletedSession() ? 'Réalisé' : 'À faire' }}
                     </span>
+                    <span class="obj-date-label" *ngIf="hasCompletedSession() && getObjectiveDate('seance')">le {{ getObjectiveDate('seance') }}</span>
                     <span class="obj-reward" [class.completed]="hasCompletedSession()">+100 🏆</span>
                   </div>
                 </div>
@@ -443,6 +450,7 @@ interface RewardItem {
                     <span class="obj-status-badge" [class.success]="hasLeftReview()">
                       {{ hasLeftReview() ? 'Réalisé' : 'À faire' }}
                     </span>
+                    <span class="obj-date-label" *ngIf="hasLeftReview() && getObjectiveDate('avis')">le {{ getObjectiveDate('avis') }}</span>
                     <span class="obj-reward" [class.completed]="hasLeftReview()">+50 🏆</span>
                   </div>
                 </div>
@@ -462,6 +470,7 @@ interface RewardItem {
                     <span class="obj-status-badge" [class.success]="hasBoughtPack()">
                       {{ hasBoughtPack() ? 'Réalisé' : 'À faire' }}
                     </span>
+                    <span class="obj-date-label" *ngIf="hasBoughtPack() && getObjectiveDate('pack')">le {{ getObjectiveDate('pack') }}</span>
                     <span class="obj-reward" [class.completed]="hasBoughtPack()">+150 🏆</span>
                   </div>
                 </div>
@@ -481,6 +490,7 @@ interface RewardItem {
                     <span class="obj-status-badge" [class.success]="hasParrainageBadge()">
                       {{ hasParrainageBadge() ? 'Réalisé' : 'À faire' }}
                     </span>
+                    <span class="obj-date-label" *ngIf="hasParrainageBadge() && getObjectiveDate('parrainage')">le {{ getObjectiveDate('parrainage') }}</span>
                     <span class="obj-reward" [class.completed]="hasParrainageBadge()">+200 🏆</span>
                   </div>
                 </div>
@@ -1844,6 +1854,13 @@ interface RewardItem {
       opacity: 1;
       transform: scale(1.05);
     }
+
+    .obj-date-label {
+      font-size: 0.75rem;
+      color: rgba(50, 205, 50, 0.75);
+      font-weight: 500;
+      margin-top: 2px;
+    }
     }
   `]
 })
@@ -2335,5 +2352,71 @@ export class MemberDashboardComponent implements OnInit {
     const firstX = pts[0].x;
     const lastX = pts[pts.length - 1].x;
     return `${line} L ${lastX} 150 L ${firstX} 150 Z`;
+  }
+
+  getObjectiveDate(type: string): string {
+    if (type === 'creation') {
+      const dateStr = this.profile()?.created_at;
+      return dateStr ? this.formatOnlyDate(dateStr) : '';
+    }
+    if (type === 'objectifs') {
+      // Visite objectifs - let's check profile data if visited
+      if (this.profile()?.objectifs_visites) {
+        return this.formatOnlyDate(new Date().toISOString());
+      }
+    }
+    if (type === 'profil') {
+      return this.profile()?.profil_complete ? 'Réalisé' : '';
+    }
+    if (type === 'reservation') {
+      const list = this.reservations();
+      if (list.length > 0) {
+        const sorted = [...list].sort((a, b) => new Date(a.date_debut).getTime() - new Date(b.date_debut).getTime());
+        return this.formatOnlyDate(sorted[0].date_debut);
+      }
+    }
+    if (type === 'seance') {
+      const list = this.reservations().filter(r => this.isPastDate(r.date_debut));
+      if (list.length > 0) {
+        const sorted = [...list].sort((a, b) => new Date(a.date_debut).getTime() - new Date(b.date_debut).getTime());
+        return this.formatOnlyDate(sorted[0].date_debut);
+      }
+    }
+    if (type === 'avis') {
+      const reviewed = this.reservations().filter(r => r.avis_laisse);
+      if (reviewed.length > 0) {
+        return this.formatOnlyDate(reviewed[0].date_debut);
+      }
+    }
+    if (type === 'pack') {
+      if (typeof window !== 'undefined') {
+        const boughtDate = localStorage.getItem('pack_bought_date');
+        if (boughtDate) return this.formatOnlyDate(boughtDate);
+      }
+    }
+    if (type === 'parrainage') {
+      const badge = this.badges().find(b => b.type === 'parrainage' && b.unlocked);
+      return badge && badge.date_obtention ? this.formatOnlyDate(badge.date_obtention) : '';
+    }
+    return '';
+  }
+
+  formatOnlyDate(dateStr: string): string {
+    if (!dateStr) return '';
+    try {
+      const d = new Date(dateStr);
+      if (isNaN(d.getTime())) {
+        const dateOnly = dateStr.includes('T') ? dateStr.split('T')[0] : dateStr;
+        const parts = dateOnly.split('-');
+        if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
+        return dateStr;
+      }
+      const day = String(d.getDate()).padStart(2, '0');
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const year = d.getFullYear();
+      return `${day}/${month}/${year}`;
+    } catch (e) {
+      return dateStr;
+    }
   }
 }

@@ -364,7 +364,7 @@ app.post('/api/auth/login', async (req, res) => {
 // Route Profil (Profil complet)
 app.get('/api/member/profile', authMiddleware, async (req, res) => {
   try {
-    const [users] = await db.query("SELECT id, email, nom, prenom, telephone, xp, points, niveau, code_parrainage FROM users WHERE id = ?", [req.user.id]);
+    const [users] = await db.query("SELECT id, email, nom, prenom, telephone, xp, points, niveau, code_parrainage, created_at, profil_complete, objectifs_visites FROM users WHERE id = ?", [req.user.id]);
     if (users.length === 0) return res.status(404).json({ message: "Utilisateur non trouvé" });
     
     res.json(users[0]);
@@ -446,12 +446,16 @@ app.get('/api/member/badges', authMiddleware, async (req, res) => {
     // Récupérer tous les badges
     const [allBadges] = await db.query("SELECT * FROM badges");
     // Récupérer les badges débloqués par l'utilisateur
-    const [unlockedBadges] = await db.query("SELECT badge_id FROM user_badges WHERE user_id = ?", [req.user.id]);
-    const unlockedIds = unlockedBadges.map(ub => ub.badge_id);
+    const [unlockedBadges] = await db.query("SELECT badge_id, date_obtention FROM user_badges WHERE user_id = ?", [req.user.id]);
+    const unlockedMap = {};
+    unlockedBadges.forEach(ub => {
+      unlockedMap[ub.badge_id] = ub.date_obtention;
+    });
 
     const result = allBadges.map(badge => ({
       ...badge,
-      unlocked: unlockedIds.includes(badge.id)
+      unlocked: badge.id in unlockedMap,
+      date_obtention: unlockedMap[badge.id] || null
     }));
 
     res.json(result);
