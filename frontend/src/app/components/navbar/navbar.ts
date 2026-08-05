@@ -81,9 +81,16 @@ import { Router } from '@angular/router';
       align-items: center;
       justify-content: space-between;
       height: 100%;
-      max-width: var(--max-width);
+      max-width: 1600px;
       margin: 0 auto;
       padding: 0 24px;
+      transition: var(--transition-medium);
+    }
+    
+    @media (min-width: 1200px) {
+      .navbar-container {
+        padding: 0 48px;
+      }
     }
     
     .logo-area {
@@ -102,6 +109,12 @@ import { Router } from '@angular/router';
       transition: var(--transition-medium);
     }
     
+    @media (min-width: 1200px) {
+      .logo-img {
+        height: 48px;
+      }
+    }
+    
     .logo-text {
       display: flex;
       flex-direction: column;
@@ -114,6 +127,13 @@ import { Router } from '@angular/router';
       font-weight: 800;
       letter-spacing: 0.05em;
       line-height: 1.1;
+      transition: var(--transition-medium);
+    }
+    
+    @media (min-width: 1200px) {
+      .logo-title {
+        font-size: 1.25rem;
+      }
     }
     
     .logo-subtitle {
@@ -121,12 +141,32 @@ import { Router } from '@angular/router';
       font-weight: 500;
       letter-spacing: 0.1em;
       color: var(--text-muted);
+      transition: var(--transition-medium);
+    }
+    
+    @media (min-width: 1200px) {
+      .logo-subtitle {
+        font-size: 0.7rem;
+      }
     }
     
     .nav-menu {
       display: flex;
       align-items: center;
-      gap: 32px;
+      gap: 24px;
+      transition: var(--transition-medium);
+    }
+    
+    @media (min-width: 1200px) {
+      .nav-menu {
+        gap: 36px;
+      }
+    }
+    
+    @media (min-width: 1400px) {
+      .nav-menu {
+        gap: 48px;
+      }
     }
     
     .nav-link {
@@ -158,12 +198,12 @@ import { Router } from '@angular/router';
     .nav-link:hover::after, .nav-link.active::after {
       width: 100%;
     }
-
+ 
     .member-nav-link {
       color: #ff4d4d;
       font-weight: 700;
     }
-
+ 
     .member-nav-link::after {
       background-color: var(--text-white);
     }
@@ -172,6 +212,13 @@ import { Router } from '@angular/router';
       display: flex;
       align-items: center;
       gap: 16px;
+      transition: var(--transition-medium);
+    }
+    
+    @media (min-width: 1200px) {
+      .nav-actions {
+        gap: 24px;
+      }
     }
     
     .rdv-btn {
