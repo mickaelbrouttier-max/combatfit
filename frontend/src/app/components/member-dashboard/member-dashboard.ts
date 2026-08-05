@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Router } from '@angular/router';
+import { BookingService } from '../../services/booking.service';
 
 interface UserProfile {
   id: number;
@@ -1078,7 +1079,8 @@ export class MemberDashboardComponent implements OnInit {
 
   constructor(
     private http: HttpClient,
-    private router: Router
+    private router: Router,
+    private bookingService: BookingService
   ) {
     if (!localStorage.getItem('member_token')) {
       this.router.navigate(['/connexion']);
@@ -1195,12 +1197,7 @@ export class MemberDashboardComponent implements OnInit {
 
   // Actions
   goToBooking() {
-    // Fermer le modal existant s'il y a lieu ou simuler le scroll/clic sur le bouton réserver
-    window.location.hash = ''; // Revenir sur la homepage
-    setTimeout(() => {
-      const el = document.getElementById('contact');
-      if (el) el.scrollIntoView({ behavior: 'smooth' });
-    }, 100);
+    this.bookingService.open();
   }
 
   copyReferralCode() {
