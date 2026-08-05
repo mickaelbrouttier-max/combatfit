@@ -188,10 +188,10 @@ interface RewardItem {
                 <path [attr.d]="getLinePath()" fill="none" stroke="var(--primary-red)" stroke-width="3"/>
 
                 <!-- Points de données -->
-                <g *ngFor="let pt of getChartPoints(); let idx = index">
-                  <circle [attr.cx]="pt.x" [attr.cy]="pt.y" r="5" fill="var(--primary-red)" stroke="var(--text-white)" stroke-width="1.5" />
+                <g *ngFor="let pt of getChartPoints(); let idx = index" class="chart-point-group">
+                  <circle [attr.cx]="pt.x" [attr.cy]="pt.y" r="5" fill="var(--primary-red)" stroke="var(--text-white)" stroke-width="1.5" class="chart-point" />
                   <!-- Tooltip de valeur -->
-                  <text [attr.x]="pt.x" [attr.y]="pt.y - 12" text-anchor="middle" fill="var(--text-white)" font-size="10" font-weight="600">
+                  <text [attr.x]="pt.x" [attr.y]="pt.y - 12" text-anchor="middle" fill="var(--text-white)" font-size="10" font-weight="600" class="chart-value-text">
                     {{ pt.val }}
                   </text>
                   <!-- Labels de date -->
@@ -743,6 +743,31 @@ interface RewardItem {
       width: 100%;
       height: auto;
       max-height: 250px;
+    }
+
+    .chart-point-group {
+      cursor: pointer;
+    }
+    
+    .chart-value-text {
+      opacity: 0;
+      transition: opacity 0.2s ease-in-out;
+      pointer-events: none;
+    }
+    
+    .chart-point {
+      transition: r 0.2s ease, fill 0.2s ease, stroke-width 0.2s ease;
+    }
+    
+    .chart-point-group:hover .chart-value-text {
+      opacity: 1;
+    }
+    
+    .chart-point-group:hover .chart-point {
+      r: 7;
+      fill: var(--primary-red);
+      stroke: var(--text-white);
+      stroke-width: 2px;
     }
 
     .chart-empty {
