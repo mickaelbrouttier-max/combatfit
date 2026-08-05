@@ -211,7 +211,7 @@ app.post('/api/auth/signup', async (req, res) => {
 
     // Gestion du parrain s'il y a un code
     let parrainId = null;
-    if (codeParrain) {
+    if (codeParrain && codeParrain.trim()) {
       const [parrain] = await db.query("SELECT id FROM users WHERE code_parrainage = ?", [codeParrain.trim()]);
       if (parrain.length > 0) {
         parrainId = parrain[0].id;
@@ -244,7 +244,7 @@ app.post('/api/auth/signup', async (req, res) => {
 
     // Générer le token
     const token = generateToken(newUserId, email);
-    res.status(201).json({ token, user: { id: newUserId, email, nom, prenom, level: 1, xp: 0, points: 0, code_parrainage } });
+    res.status(201).json({ token, user: { id: newUserId, email, nom, prenom, level: 1, xp: 0, points: 0, code_parrainage: codeParrainage } });
   } catch (err) {
     console.error("Erreur Inscription :", err);
     res.status(500).json({ error: "Erreur serveur lors de la création du compte.", details: err.message });
