@@ -97,11 +97,24 @@ const { nom_client, email_client, telephone_client, prestation, date_debut, date
     const dateFinString = `${date_debut} ${timeFinCalculated}:00`;
 
     // 3. Insertion en base de données
+    let isFirstReservation = false;
+    if (user_id) {
+      const [existingRes] = await db.query("SELECT id FROM reservations WHERE user_id = ?", [user_id]);
+      if (existingRes.length === 0) {
+        isFirstReservation = true;
+      }
+    }
+
     const sql = `INSERT INTO reservations 
                 (nom_client, email_client, telephone_client, prestation, date_debut, date_fin, remarques, user_id) 
                 VALUES (?, ?, ?, ?, STR_TO_DATE(?, '%Y-%m-%d %H:%i:%s'), STR_TO_DATE(?, '%Y-%m-%d %H:%i:%s'), ?, ?)`;
     
     await db.query(sql, [nom_client, email_client, telephone_client, prestation, dateDebutString, dateFinString, remarques || '', user_id || null]);
+
+    if (isFirstReservation) {
+      // Première réservation d’une séance -> 50 points bonus
+      await db.query("UPDATE users SET points = points + 50 WHERE id = ?", [user_id]);
+    }
 
     // Envoi de l'e-mail en arrière-plan sans bloquer la réponse client via l'API Brevo (HTTPS)
     if (process.env.BREVO_API_KEY) {
@@ -224,16 +237,16 @@ app.post('/api/auth/signup', async (req, res) => {
 
     const passwordHash = hashPassword(password);
     const [result] = await db.query(
-      "INSERT INTO users (email, password_hash, nom, prenom, telephone, parrain_id, code_parrainage) VALUES (?, ?, ?, ?, ?, ?, ?)",
-      [email, passwordHash, nom, prenom, telephone || '', parrainId, codeParrainage]
+      "INSERT INTO users (email, password_hash, nom, prenom, telephone, parrain_id, code_parrainage, points) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+      [email, passwordHash, nom, prenom, telephone || '', parrainId, codeParrainage, 10]
     );
 
     const newUserId = result.insertId;
 
-    // Si parrainage réussi, on attribue des points au parrain
+    // Si parrainage réussi, on attribue des points au parrain (Parrainer un ami -> 200 points)
     if (parrainId) {
-      // Le parrain gagne 50 points (trophées)
-      await db.query("UPDATE users SET points = points + 50 WHERE id = ?", [parrainId]);
+      // Le parrain gagne 200 points (trophées)
+      await db.query("UPDATE users SET points = points + 200 WHERE id = ?", [parrainId]);
       
       // Vérifier et débloquer le badge de parrainage du parrain
       const [badge] = await db.query("SELECT id FROM badges WHERE type = 'parrainage' LIMIT 1");
@@ -244,7 +257,7 @@ app.post('/api/auth/signup', async (req, res) => {
 
     // Générer le token
     const token = generateToken(newUserId, email);
-    res.status(201).json({ token, user: { id: newUserId, email, nom, prenom, level: 1, xp: 0, points: 0, code_parrainage: codeParrainage } });
+    res.status(201).json({ token, user: { id: newUserId, email, nom, prenom, level: 1, xp: 0, points: 10, code_parrainage: codeParrainage } });
   } catch (err) {
     console.error("Erreur Inscription :", err);
     res.status(500).json({ error: "Erreur serveur lors de la création du compte.", details: err.message });
@@ -281,7 +294,17 @@ app.post('/api/auth/login', async (req, res) => {
       const nouveauNiveau = Math.floor(totalXp / 100) + 1;
       
       // Trophées gagnés : 10 points par séance passée
-      const pointsGagnes = pastUncredited.length * 10;
+      let pointsGagnes = pastUncredited.length * 10;
+      
+      // Bonus de 100 points pour la première séance réalisée !
+      const [pastCredited] = await db.query(
+        "SELECT id FROM reservations WHERE (email_client = ? OR user_id = ?) AND date_debut < NOW() AND xp_awarded = TRUE",
+        [email, user.id]
+      );
+      if (pastCredited.length === 0) {
+        pointsGagnes += 100;
+      }
+
       const nouveauxPoints = user.points + pointsGagnes;
 
       await db.query(
@@ -484,6 +507,92 @@ app.post('/api/rewards/redeem', authMiddleware, async (req, res) => {
     await db.query("INSERT INTO user_rewards (user_id, reward_id, statut) VALUES (?, ?, 'demande')", [req.user.id, r.id]);
 
     res.json({ success: true, message: `Félicitations ! Vous avez échangé ${r.cout_points} points contre : ${r.nom}.` });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Erreur serveur" });
+  }
+});
+
+// Route de mise à jour du profil (Compléter son profil -> 🏆 10)
+app.put('/api/member/profile', authMiddleware, async (req, res) => {
+  const { nom, prenom, telephone } = req.body;
+  if (!nom || !prenom || !telephone) {
+    return res.status(400).json({ message: "Veuillez remplir tous les champs obligatoires." });
+  }
+  
+  try {
+    const [user] = await db.query("SELECT profil_complete FROM users WHERE id = ?", [req.user.id]);
+    if (user.length === 0) return res.status(404).json({ message: "Utilisateur non trouvé" });
+    
+    let pointsBonus = 0;
+    let setCompleted = "";
+    if (!user[0].profil_complete) {
+      pointsBonus = 10;
+      setCompleted = ", profil_complete = TRUE, points = points + 10";
+    }
+    
+    await db.query(
+      `UPDATE users SET nom = ?, prenom = ?, telephone = ?${setCompleted} WHERE id = ?`,
+      [nom, prenom, telephone, req.user.id]
+    );
+    
+    res.json({ success: true, pointsBonus, message: "Profil mis à jour avec succès !" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Erreur serveur lors de la mise à jour." });
+  }
+});
+
+// Route Visite objectifs (Visiter la page objectifs -> 🏆 5)
+app.post('/api/member/objectives/visit', authMiddleware, async (req, res) => {
+  try {
+    const [user] = await db.query("SELECT objectifs_visites FROM users WHERE id = ?", [req.user.id]);
+    if (user.length === 0) return res.status(404).json({ message: "Utilisateur non trouvé" });
+    
+    let pointsBonus = 0;
+    if (!user[0].objectifs_visites) {
+      pointsBonus = 5;
+      await db.query("UPDATE users SET objectifs_visites = TRUE, points = points + 5 WHERE id = ?", [req.user.id]);
+    }
+    
+    res.json({ success: true, pointsBonus });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Erreur serveur" });
+  }
+});
+
+// Route Acheter un pack (Acheter un pack -> 🏆 150)
+app.post('/api/member/buy-pack', authMiddleware, async (req, res) => {
+  try {
+    await db.query("UPDATE users SET points = points + 150 WHERE id = ?", [req.user.id]);
+    res.json({ success: true, message: "Félicitations ! Vous avez acheté un pack d'entraînement : +150 Trophées !" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Erreur serveur" });
+  }
+});
+
+// Route Laisser un avis (Laisser un avis -> 🏆 50)
+app.post('/api/member/review', authMiddleware, async (req, res) => {
+  const { reservationId, avis } = req.body;
+  if (!reservationId || !avis) {
+    return res.status(400).json({ message: "Paramètres manquants." });
+  }
+  
+  try {
+    const [resv] = await db.query("SELECT id, user_id, avis_laisse FROM reservations WHERE id = ?", [reservationId]);
+    if (resv.length === 0) return res.status(404).json({ message: "Réservation non trouvée" });
+    
+    if (resv[0].avis_laisse) {
+      return res.status(400).json({ message: "Vous avez déjà laissé un avis pour cette séance." });
+    }
+    
+    // Mettre à jour la réservation et ajouter 50 points
+    await db.query("UPDATE reservations SET avis_laisse = TRUE, remarques = CONCAT(remarques, '\n[Avis] : ', ?) WHERE id = ?", [avis, reservationId]);
+    await db.query("UPDATE users SET points = points + 50 WHERE id = ?", [req.user.id]);
+    
+    res.json({ success: true, message: "Merci pour votre avis ! +50 Trophées !" });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Erreur serveur" });

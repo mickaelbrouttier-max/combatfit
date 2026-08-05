@@ -130,6 +130,28 @@ db.getConnection()
         console.log("👉 Colonne xp_awarded ajoutée avec succès !");
       }
 
+      // Colonnes additionnelles pour la gamification
+      const [colProfilComplete] = await connection.query("SHOW COLUMNS FROM users LIKE 'profil_complete'");
+      if (colProfilComplete.length === 0) {
+        await connection.query("ALTER TABLE users ADD COLUMN profil_complete BOOLEAN DEFAULT FALSE");
+        console.log("👉 Colonne 'profil_complete' ajoutée à la table 'users'.");
+      }
+
+      const [colObjectifsVisites] = await connection.query("SHOW COLUMNS FROM users LIKE 'objectifs_visites'");
+      if (colObjectifsVisites.length === 0) {
+        await connection.query("ALTER TABLE users ADD COLUMN objectifs_visites BOOLEAN DEFAULT FALSE");
+        console.log("👉 Colonne 'objectifs_visites' ajoutée à la table 'users'.");
+      }
+
+      const [colAvisLaisse] = await connection.query("SHOW COLUMNS FROM reservations LIKE 'avis_laisse'");
+      if (colAvisLaisse.length === 0) {
+        await connection.query("ALTER TABLE reservations ADD COLUMN avis_laisse BOOLEAN DEFAULT FALSE");
+        console.log("👉 Colonne 'avis_laisse' ajoutée à la table 'reservations'.");
+      }
+
+      // S'assurer que le T-Shirt CombatFit vaut au moins 500 points en BDD
+      await connection.query("UPDATE rewards SET cout_points = 500 WHERE nom = 'T-Shirt CombatFit' AND cout_points < 500");
+
       // 8. Insertion des badges par défaut s'il n'y en a aucun
       const [badgesCount] = await connection.query("SELECT COUNT(*) as count FROM badges");
       if (badgesCount[0].count === 0) {
@@ -153,7 +175,7 @@ db.getConnection()
         console.log("🌱 Insertion des récompenses par défaut...");
         const defaultRewards = [
           ['Séance offerte', '1 séance de coaching de 90 min offerte', 300, -1],
-          ['T-Shirt CombatFit', 'Le t-shirt officiel pour vos entraînements', 150, 50],
+          ['T-Shirt CombatFit', 'Le t-shirt officiel pour vos entraînements', 500, 50],
           ['Shaker CombatFit', 'Le shaker pour vos boissons de récupération', 80, 100]
         ];
         for (const r of defaultRewards) {

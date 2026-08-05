@@ -15,6 +15,8 @@ interface UserProfile {
   points: number;
   niveau: number;
   code_parrainage: string;
+  profil_complete?: boolean;
+  objectifs_visites?: boolean;
 }
 
 interface StatRecord {
@@ -111,12 +113,18 @@ interface RewardItem {
           <button [class.active]="activeTab() === 'progression'" (click)="activeTab.set('progression')">
             <span class="material-icons-outlined">trending_up</span> Progression
           </button>
+          <button [class.active]="activeTab() === 'objectifs'" (click)="selectObjectivesTab()">
+            <span class="material-icons-outlined">track_changes</span> Objectifs
+          </button>
           <button [class.active]="activeTab() === 'badges'" (click)="selectBadgesTab()" class="badges-tab-btn">
             <span class="material-icons-outlined">emoji_events</span> Badges
             <span *ngIf="unseenBadgesCount() > 0" class="tab-notification-badge">{{ unseenBadgesCount() }}</span>
           </button>
           <button [class.active]="activeTab() === 'boutique'" (click)="activeTab.set('boutique')">
             <span class="material-icons-outlined">storefront</span> Boutique
+          </button>
+          <button [class.active]="activeTab() === 'profile'" (click)="activeTab.set('profile')">
+            <span class="material-icons-outlined">person</span> Profil
           </button>
           <button class="logout-btn-tab" (click)="logout()">
             <span class="material-icons-outlined">logout</span> Quitter
@@ -147,10 +155,21 @@ interface RewardItem {
                     </p>
                   </div>
                 </div>
-                <div class="seance-status">
-                  <span class="status-badge" [class.upcoming]="!isPastDate(res.date_debut)" [class.passed]="isPastDate(res.date_debut)">
-                    {{ isPastDate(res.date_debut) ? 'Effectuée (+50 XP)' : 'À venir' }}
-                  </span>
+                <div class="seance-actions-col">
+                  <div class="seance-status">
+                    <span class="status-badge" [class.upcoming]="!isPastDate(res.date_debut)" [class.passed]="isPastDate(res.date_debut)">
+                      {{ isPastDate(res.date_debut) ? 'Effectuée (+50 XP)' : 'À venir' }}
+                    </span>
+                  </div>
+                  <!-- Option avis pour séance passée -->
+                  <div *ngIf="isPastDate(res.date_debut)" class="review-action-container">
+                    <button *ngIf="!res.avis_laisse" (click)="openReviewPrompt(res)" class="review-btn-action">
+                      <span class="material-icons-outlined">rate_review</span> Laisser un avis (+50 🏆)
+                    </button>
+                    <span *ngIf="res.avis_laisse" class="review-done-badge">
+                      <span class="material-icons-outlined">done</span> Avis laissé (+50 🏆)
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -270,6 +289,20 @@ interface RewardItem {
               <p>{{ boutiqueMessage() }}</p>
             </div>
 
+            <!-- Promo Pack Banner -->
+            <div class="pack-promo-banner">
+              <div class="pack-promo-content">
+                <div>
+                  <h4 class="pack-promo-title">Vous souhaitez accélérer votre progression ?</h4>
+                  <p class="pack-promo-desc">Achetez un pack d'entraînement (séances de coaching) et gagnez instantanément un bonus de trophées !</p>
+                </div>
+                <button (click)="buyPack()" class="pack-promo-btn" [disabled]="packBuying()">
+                  <span *ngIf="!packBuying()"><span class="material-icons-outlined">shopping_cart</span> Acheter un pack (+150 🏆)</span>
+                  <span *ngIf="packBuying()" class="spinner btn-spinner"></span>
+                </button>
+              </div>
+            </div>
+
             <div class="rewards-grid">
               <div *ngFor="let r of rewards()" class="reward-card">
                 <div class="reward-image-placeholder">
@@ -294,6 +327,91 @@ interface RewardItem {
                 </div>
               </div>
             </div>
+          </div>
+
+          <!-- Onglet Objectifs -->
+          <div *ngIf="activeTab() === 'objectifs'">
+            <h3 class="tab-title">Mes Objectifs & Défis</h3>
+            <p class="tab-subtitle">Relevez ces défis physiques pour booster votre niveau et débloquer des badges exclusifs.</p>
+            
+            <div class="objectives-list">
+              <div class="objective-card">
+                <div class="objective-header">
+                  <span class="material-icons-outlined obj-icon">directions_run</span>
+                  <div>
+                    <h4>Première séance réalisée</h4>
+                    <p>Assistez à votre premier entraînement avec Mathias.</p>
+                  </div>
+                  <span class="obj-reward">+100 🏆</span>
+                </div>
+              </div>
+              
+              <div class="objective-card">
+                <div class="objective-header">
+                  <span class="material-icons-outlined obj-icon">bolt</span>
+                  <div>
+                    <h4>Machine de guerre (Pompes)</h4>
+                    <p>Validez une série de 50 pompes d'affilée dans votre onglet Progression.</p>
+                  </div>
+                  <span class="obj-reward">Badge 🏆</span>
+                </div>
+              </div>
+
+              <div class="objective-card">
+                <div class="objective-header">
+                  <span class="material-icons-outlined obj-icon">timer</span>
+                  <div>
+                    <h4>Force tranquille (Gainage)</h4>
+                    <p>Tenez 3 minutes (180s) de gainage planche.</p>
+                  </div>
+                  <span class="obj-reward">Badge 🏆</span>
+                </div>
+              </div>
+
+              <div class="objective-card">
+                <div class="objective-header">
+                  <span class="material-icons-outlined obj-icon">share</span>
+                  <div>
+                    <h4>Parrainer un ami</h4>
+                    <p>Partagez votre code unique. Votre ami gagne à l'inscription et vous gagnez un bonus.</p>
+                  </div>
+                  <span class="obj-reward">+200 🏆</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Onglet Profil -->
+          <div *ngIf="activeTab() === 'profile'">
+            <h3 class="tab-title">Mon Profil CombatFit</h3>
+            <p class="tab-subtitle">Complétez vos coordonnées pour que Mathias puisse vous contacter rapidement.</p>
+            
+            <form (submit)="updateProfile($event)" class="profile-edit-form">
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="prof-prenom">Prénom *</label>
+                  <input type="text" id="prof-prenom" name="prenom" [(ngModel)]="profileData.prenom" required />
+                </div>
+                <div class="form-group">
+                  <label for="prof-nom">Nom *</label>
+                  <input type="text" id="prof-nom" name="nom" [(ngModel)]="profileData.nom" required />
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="prof-email">Adresse E-mail (Non modifiable)</label>
+                <input type="email" id="prof-email" name="email" [value]="profile()?.email" disabled />
+              </div>
+              <div class="form-group">
+                <label for="prof-tel">Numéro de Téléphone *</label>
+                <input type="text" id="prof-tel" name="telephone" [(ngModel)]="profileData.telephone" required placeholder="Ex: 06 12 34 56 78" />
+                <p class="input-info" *ngIf="!profile()?.profil_complete">Renseignez votre téléphone pour compléter votre profil et gagner 10 🏆 !</p>
+              </div>
+              
+              <button type="submit" class="action-btn" [disabled]="profileSaving()">
+                <span *ngIf="!profileSaving()">Enregistrer le profil</span>
+                <span *ngIf="profileSaving()" class="spinner btn-spinner"></span>
+              </button>
+            </form>
           </div>
 
         </div>
@@ -325,6 +443,29 @@ interface RewardItem {
             <button (click)="closeUnlockNotification()" class="unlock-confirm-btn">
               <span class="material-icons-outlined">workspace_premium</span> Voir mes badges
             </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Laisser un Avis -->
+      <div *ngIf="activeReviewReservation()" class="unlock-backdrop">
+        <div class="unlock-card review-modal-card">
+          <div class="unlock-content">
+            <span class="unlock-title">LAISSER UN AVIS</span>
+            <h3>Votre avis sur la séance : {{ activeReviewReservation()?.prestation }}</h3>
+            <p class="unlock-badge-desc">Votre avis aide Mathias à améliorer ses coachings et vous rapporte 50 🏆 !</p>
+            
+            <div class="review-textarea-container">
+              <textarea [(ngModel)]="reviewText" placeholder="Écrivez votre commentaire ici (ex: Super séance, très intense, Mathias est au top !)..." class="review-textarea"></textarea>
+            </div>
+            
+            <div class="review-modal-actions">
+              <button (click)="activeReviewReservation.set(null)" class="btn btn-secondary">Annuler</button>
+              <button (click)="submitReview()" class="action-btn" [disabled]="reviewSaving() || !reviewText.trim()">
+                <span *ngIf="!reviewSaving()">Publier l'avis (+50 🏆)</span>
+                <span *ngIf="reviewSaving()" class="spinner btn-spinner"></span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -1130,7 +1271,6 @@ interface RewardItem {
         width: 100%;
         justify-content: center;
       }
-      }
       .tab-content-card {
         padding: 24px;
       }
@@ -1293,11 +1433,234 @@ interface RewardItem {
       transform: scale(1.05);
       box-shadow: 0 0 25px rgba(208, 0, 0, 0.6);
     }
+
+    /* Objectifs list */
+    .objectives-list {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    
+    .objective-card {
+      background-color: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: var(--border-radius-sm);
+      padding: 20px;
+      transition: var(--transition-fast);
+    }
+    
+    .objective-card:hover {
+      background-color: rgba(255, 255, 255, 0.04);
+      border-color: var(--accent-gold);
+    }
+    
+    .objective-header {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      text-align: left;
+    }
+    
+    .obj-icon {
+      font-size: 2.2rem;
+      color: var(--accent-gold);
+      background-color: rgba(197, 168, 128, 0.1);
+      width: 54px;
+      height: 54px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .objective-header h4 {
+      margin: 0 0 4px 0;
+      font-size: 1.1rem;
+      font-weight: 700;
+    }
+    
+    .objective-header p {
+      margin: 0;
+      font-size: 0.85rem;
+      color: var(--text-light-grey);
+    }
+    
+    .obj-reward {
+      margin-left: auto;
+      font-weight: 800;
+      color: #ffd700;
+      font-size: 1.1rem;
+    }
+    
+    /* Profile Form */
+    .profile-edit-form {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    
+    .profile-edit-form input {
+      background-color: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: var(--border-radius-sm);
+      color: var(--text-white);
+      padding: 12px 16px;
+      font-size: 0.95rem;
+      width: 100%;
+    }
+    
+    .profile-edit-form input:focus {
+      outline: none;
+      border-color: var(--primary-red);
+    }
+    
+    .profile-edit-form input:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    
+    /* Pack promo */
+    .pack-promo-banner {
+      background: linear-gradient(135deg, rgba(208, 0, 0, 0.15) 0%, rgba(13, 13, 17, 0.9) 100%);
+      border: 1px dashed var(--primary-red);
+      border-radius: var(--border-radius-lg);
+      padding: 24px;
+      margin-bottom: 30px;
+      text-align: left;
+      box-shadow: var(--shadow-sm);
+    }
+    
+    .pack-promo-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+    
+    .pack-promo-title {
+      font-size: 1.15rem;
+      font-weight: 800;
+      margin: 0 0 6px 0;
+      color: var(--text-white);
+    }
+    
+    .pack-promo-desc {
+      font-size: 0.9rem;
+      color: var(--text-light-grey);
+      margin: 0;
+    }
+    
+    .pack-promo-btn {
+      background-color: var(--primary-red);
+      color: var(--text-white);
+      border: none;
+      padding: 12px 24px;
+      border-radius: 30px;
+      font-weight: 800;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: var(--glow-red);
+      transition: var(--transition-medium);
+    }
+    
+    .pack-promo-btn:hover {
+      background-color: #ff1a1a;
+      transform: scale(1.03);
+    }
+    
+    /* Review actions */
+    .seance-actions-col {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 10px;
+    }
+    
+    .review-action-container {
+      margin-top: 4px;
+    }
+    
+    .review-btn-action {
+      background: none;
+      border: 1px dashed var(--accent-gold);
+      color: var(--accent-gold);
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 6px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: var(--transition-fast);
+    }
+    
+    .review-btn-action:hover {
+      background-color: rgba(197, 168, 128, 0.1);
+      color: var(--text-white);
+      border-color: var(--text-white);
+    }
+    
+    .review-done-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: #32cd32;
+    }
+    
+    /* Review modal styling */
+    .review-modal-card {
+      max-width: 500px;
+      border-color: var(--accent-gold);
+      width: 100%;
+    }
+    
+    .review-textarea-container {
+      width: 100%;
+      margin: 10px 0;
+    }
+    
+    .review-textarea {
+      width: 100%;
+      height: 120px;
+      background-color: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: var(--border-radius-sm);
+      color: var(--text-white);
+      padding: 12px;
+      font-family: var(--font-body);
+      font-size: 0.95rem;
+      resize: none;
+    }
+    
+    .review-textarea:focus {
+      outline: none;
+      border-color: var(--accent-gold);
+    }
+    
+    .review-modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      width: 100%;
+      margin-top: 10px;
+    }
     }
   `]
 })
 export class MemberDashboardComponent implements OnInit {
   profile = signal<UserProfile | null>(null);
+  profileData = { nom: '', prenom: '', telephone: '' };
+  profileSaving = signal<boolean>(false);
+  packBuying = signal<boolean>(false);
+  activeReviewReservation = signal<any | null>(null);
+  reviewText = '';
+  reviewSaving = signal<boolean>(false);
   reservations = signal<any[]>([]);
   stats = signal<StatRecord[]>([]);
   badges = signal<BadgeItem[]>([]);
@@ -1309,7 +1672,7 @@ export class MemberDashboardComponent implements OnInit {
   });
   activeUnlockNotification = signal<BadgeItem | null>(null);
 
-  activeTab = signal<'seances' | 'progression' | 'badges' | 'boutique'>('seances');
+  activeTab = signal<'seances' | 'progression' | 'badges' | 'boutique' | 'objectifs' | 'profile'>('seances');
   activeMetric = signal<'poids' | 'pompes' | 'gainage'>('poids');
 
   // Formulaire stats
@@ -1372,6 +1735,9 @@ export class MemberDashboardComponent implements OnInit {
     this.http.get<UserProfile>(`${api}/member/profile`, { headers }).subscribe({
       next: (data) => {
         this.profile.set(data);
+        this.profileData.nom = data.nom;
+        this.profileData.prenom = data.prenom;
+        this.profileData.telephone = data.telephone || '';
         localStorage.setItem('member_user', JSON.stringify(data));
       },
       error: () => this.logout()
@@ -1495,6 +1861,99 @@ export class MemberDashboardComponent implements OnInit {
         this.selectBadgesTab();
       }
     }
+  }
+
+  selectObjectivesTab() {
+    this.activeTab.set('objectifs');
+    
+    // Appeler l'API de visite d'objectifs
+    const headers = this.getHeaders();
+    const api = this.getApiUrl();
+    this.http.post<any>(`${api}/member/objectives/visit`, {}, { headers }).subscribe({
+      next: (res) => {
+        if (res.pointsBonus > 0) {
+          this.loadAllData();
+          alert(`Objectifs consultés : +5 Trophées déverrouillés !`);
+        }
+      },
+      error: (err) => console.error(err)
+    });
+  }
+
+  updateProfile(event: Event) {
+    event.preventDefault();
+    this.profileSaving.set(true);
+    
+    const headers = this.getHeaders();
+    const api = this.getApiUrl();
+    
+    this.http.put<any>(`${api}/member/profile`, this.profileData, { headers }).subscribe({
+      next: (res) => {
+        this.profileSaving.set(false);
+        this.loadAllData();
+        let msg = "Votre profil a bien été enregistré !";
+        if (res.pointsBonus > 0) {
+          msg += ` Félicitations : +10 Trophées gagnés pour avoir complété votre profil !`;
+        }
+        alert(msg);
+      },
+      error: (err) => {
+        this.profileSaving.set(false);
+        alert(err.error?.message || "Erreur lors de l'enregistrement du profil.");
+      }
+    });
+  }
+
+  buyPack() {
+    if (!confirm("Simuler l'achat d'un pack d'entraînement pour gagner 150 trophées ?")) return;
+    this.packBuying.set(true);
+    
+    const headers = this.getHeaders();
+    const api = this.getApiUrl();
+    
+    this.http.post<any>(`${api}/member/buy-pack`, {}, { headers }).subscribe({
+      next: (res) => {
+        this.packBuying.set(false);
+        this.loadAllData();
+        alert(res.message);
+      },
+      error: (err) => {
+        this.packBuying.set(false);
+        alert("Erreur lors de la simulation d'achat.");
+      }
+    });
+  }
+
+  openReviewPrompt(resv: any) {
+    this.activeReviewReservation.set(resv);
+    this.reviewText = '';
+  }
+
+  submitReview() {
+    const resv = this.activeReviewReservation();
+    if (!resv || !this.reviewText.trim()) return;
+    
+    this.reviewSaving.set(true);
+    const headers = this.getHeaders();
+    const api = this.getApiUrl();
+    
+    const body = {
+      reservationId: resv.id,
+      avis: this.reviewText.trim()
+    };
+    
+    this.http.post<any>(`${api}/member/review`, body, { headers }).subscribe({
+      next: (res) => {
+        this.reviewSaving.set(false);
+        this.activeReviewReservation.set(null);
+        this.loadAllData();
+        alert(res.message);
+      },
+      error: (err) => {
+        this.reviewSaving.set(false);
+        alert(err.error?.message || "Erreur lors de la publication de l'avis.");
+      }
+    });
   }
 
   copyReferralCode() {
