@@ -339,50 +339,150 @@ interface RewardItem {
           <!-- Onglet Objectifs -->
           <div *ngIf="activeTab() === 'objectifs'">
             <h3 class="tab-title">Mes Objectifs & Défis</h3>
-            <p class="tab-subtitle">Relevez ces défis physiques pour booster votre niveau et débloquer des badges exclusifs.</p>
+            <p class="tab-subtitle">Relevez ces défis physiques et de participation pour débloquer des trophées bonus.</p>
             
             <div class="objectives-list">
-              <div class="objective-card">
+              <!-- 1. Création de compte (Toujours complété) -->
+              <div class="objective-card completed">
                 <div class="objective-header">
-                  <span class="material-icons-outlined obj-icon">directions_run</span>
-                  <div>
-                    <h4>Première séance réalisée</h4>
-                    <p>Assistez à votre premier entraînement avec Mathias.</p>
+                  <span class="material-icons-outlined obj-icon success">check_circle</span>
+                  <div class="obj-info-text">
+                    <h4>Création du compte</h4>
+                    <p>Rejoindre la team CombatFit et commencer l'entraînement.</p>
                   </div>
-                  <span class="obj-reward">+100 🏆</span>
-                </div>
-              </div>
-              
-              <div class="objective-card">
-                <div class="objective-header">
-                  <span class="material-icons-outlined obj-icon">bolt</span>
-                  <div>
-                    <h4>Machine de guerre (Pompes)</h4>
-                    <p>Validez une série de 50 pompes d'affilée dans votre onglet Progression.</p>
+                  <div class="obj-status-group">
+                    <span class="obj-status-badge success">Réalisé</span>
+                    <span class="obj-reward completed">+10 🏆</span>
                   </div>
-                  <span class="obj-reward">Badge 🏆</span>
                 </div>
               </div>
 
-              <div class="objective-card">
+              <!-- 2. Visite des objectifs (Toujours complété quand on y est) -->
+              <div class="objective-card completed">
                 <div class="objective-header">
-                  <span class="material-icons-outlined obj-icon">timer</span>
-                  <div>
-                    <h4>Force tranquille (Gainage)</h4>
-                    <p>Tenez 3 minutes (180s) de gainage planche.</p>
+                  <span class="material-icons-outlined obj-icon success">check_circle</span>
+                  <div class="obj-info-text">
+                    <h4>Visiter les objectifs</h4>
+                    <p>Découvrir les défis pour booster sa progression.</p>
                   </div>
-                  <span class="obj-reward">Badge 🏆</span>
+                  <div class="obj-status-group">
+                    <span class="obj-status-badge success">Réalisé</span>
+                    <span class="obj-reward completed">+5 🏆</span>
+                  </div>
                 </div>
               </div>
 
-              <div class="objective-card">
+              <!-- 3. Compléter son profil -->
+              <div class="objective-card" [class.completed]="profile()?.profil_complete">
                 <div class="objective-header">
-                  <span class="material-icons-outlined obj-icon">share</span>
-                  <div>
+                  <span class="material-icons-outlined obj-icon" [class.success]="profile()?.profil_complete">
+                    {{ profile()?.profil_complete ? 'check_circle' : 'lock' }}
+                  </span>
+                  <div class="obj-info-text">
+                    <h4>Compléter son profil</h4>
+                    <p>Renseignez votre numéro de téléphone dans l'onglet Profil.</p>
+                  </div>
+                  <div class="obj-status-group">
+                    <span class="obj-status-badge" [class.success]="profile()?.profil_complete">
+                      {{ profile()?.profil_complete ? 'Réalisé' : 'À faire' }}
+                    </span>
+                    <span class="obj-reward" [class.completed]="profile()?.profil_complete">+10 🏆</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 4. Première réservation -->
+              <div class="objective-card" [class.completed]="hasReservations()">
+                <div class="objective-header">
+                  <span class="material-icons-outlined obj-icon" [class.success]="hasReservations()">
+                    {{ hasReservations() ? 'check_circle' : 'lock' }}
+                  </span>
+                  <div class="obj-info-text">
+                    <h4>Première réservation</h4>
+                    <p>Prenez votre premier rendez-vous avec Mathias.</p>
+                  </div>
+                  <div class="obj-status-group">
+                    <span class="obj-status-badge" [class.success]="hasReservations()">
+                      {{ hasReservations() ? 'Réalisé' : 'À faire' }}
+                    </span>
+                    <span class="obj-reward" [class.completed]="hasReservations()">+50 🏆</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 5. Première séance réalisée -->
+              <div class="objective-card" [class.completed]="hasCompletedSession()">
+                <div class="objective-header">
+                  <span class="material-icons-outlined obj-icon" [class.success]="hasCompletedSession()">
+                    {{ hasCompletedSession() ? 'check_circle' : 'lock' }}
+                  </span>
+                  <div class="obj-info-text">
+                    <h4>Première séance effectuée</h4>
+                    <p>Vivez votre premier entraînement de karaté ou prépa physique.</p>
+                  </div>
+                  <div class="obj-status-group">
+                    <span class="obj-status-badge" [class.success]="hasCompletedSession()">
+                      {{ hasCompletedSession() ? 'Réalisé' : 'À faire' }}
+                    </span>
+                    <span class="obj-reward" [class.completed]="hasCompletedSession()">+100 🏆</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 6. Laisser un avis -->
+              <div class="objective-card" [class.completed]="hasLeftReview()">
+                <div class="objective-header">
+                  <span class="material-icons-outlined obj-icon" [class.success]="hasLeftReview()">
+                    {{ hasLeftReview() ? 'check_circle' : 'lock' }}
+                  </span>
+                  <div class="obj-info-text">
+                    <h4>Laisser un avis après une séance</h4>
+                    <p>Donnez votre avis sur une séance terminée dans l'historique.</p>
+                  </div>
+                  <div class="obj-status-group">
+                    <span class="obj-status-badge" [class.success]="hasLeftReview()">
+                      {{ hasLeftReview() ? 'Réalisé' : 'À faire' }}
+                    </span>
+                    <span class="obj-reward" [class.completed]="hasLeftReview()">+50 🏆</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 7. Acheter un pack -->
+              <div class="objective-card" [class.completed]="hasBoughtPack()">
+                <div class="objective-header">
+                  <span class="material-icons-outlined obj-icon" [class.success]="hasBoughtPack()">
+                    {{ hasBoughtPack() ? 'check_circle' : 'lock' }}
+                  </span>
+                  <div class="obj-info-text">
+                    <h4>Acheter un pack d'entraînement</h4>
+                    <p>Prenez un pack d'entraînements dans l'onglet Boutique.</p>
+                  </div>
+                  <div class="obj-status-group">
+                    <span class="obj-status-badge" [class.success]="hasBoughtPack()">
+                      {{ hasBoughtPack() ? 'Réalisé' : 'À faire' }}
+                    </span>
+                    <span class="obj-reward" [class.completed]="hasBoughtPack()">+150 🏆</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 8. Parrainer un ami -->
+              <div class="objective-card" [class.completed]="hasParrainageBadge()">
+                <div class="objective-header">
+                  <span class="material-icons-outlined obj-icon" [class.success]="hasParrainageBadge()">
+                    {{ hasParrainageBadge() ? 'check_circle' : 'lock' }}
+                  </span>
+                  <div class="obj-info-text">
                     <h4>Parrainer un ami</h4>
-                    <p>Partagez votre code unique. Votre ami gagne à l'inscription et vous gagnez un bonus.</p>
+                    <p>Faites s'inscrire un ami en lui transmettant votre code parrainage.</p>
                   </div>
-                  <span class="obj-reward">+200 🏆</span>
+                  <div class="obj-status-group">
+                    <span class="obj-status-badge" [class.success]="hasParrainageBadge()">
+                      {{ hasParrainageBadge() ? 'Réalisé' : 'À faire' }}
+                    </span>
+                    <span class="obj-reward" [class.completed]="hasParrainageBadge()">+200 🏆</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -1449,16 +1549,28 @@ interface RewardItem {
     }
     
     .objective-card {
-      background-color: rgba(255, 255, 255, 0.02);
+      background-color: rgba(255, 255, 255, 0.01);
       border: 1px solid rgba(255, 255, 255, 0.05);
       border-radius: var(--border-radius-sm);
       padding: 20px;
       transition: var(--transition-fast);
+      opacity: 0.6;
     }
     
     .objective-card:hover {
-      background-color: rgba(255, 255, 255, 0.04);
-      border-color: var(--accent-gold);
+      background-color: rgba(255, 255, 255, 0.02);
+      border-color: rgba(255, 255, 255, 0.15);
+    }
+
+    .objective-card.completed {
+      opacity: 1;
+      border-color: rgba(50, 205, 50, 0.2);
+      background-color: rgba(50, 205, 50, 0.01);
+    }
+
+    .objective-card.completed:hover {
+      border-color: rgba(50, 205, 50, 0.4);
+      background-color: rgba(50, 205, 50, 0.02);
     }
     
     .objective-header {
@@ -1470,14 +1582,21 @@ interface RewardItem {
     
     .obj-icon {
       font-size: 2.2rem;
-      color: var(--accent-gold);
-      background-color: rgba(197, 168, 128, 0.1);
+      color: var(--text-light-grey);
+      background-color: rgba(255, 255, 255, 0.05);
       width: 54px;
       height: 54px;
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
+      transition: var(--transition-fast);
+    }
+
+    .obj-icon.success {
+      color: #32cd32;
+      background-color: rgba(50, 205, 50, 0.1);
+      box-shadow: 0 0 15px rgba(50, 205, 50, 0.2);
     }
     
     .objective-header h4 {
@@ -1492,11 +1611,42 @@ interface RewardItem {
       color: var(--text-light-grey);
     }
     
+    .obj-status-group {
+      margin-left: auto;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 6px;
+    }
+
+    .obj-status-badge {
+      font-size: 0.7rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 4px 8px;
+      border-radius: 4px;
+      background-color: rgba(255, 255, 255, 0.05);
+      color: var(--text-light-grey);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .obj-status-badge.success {
+      background-color: rgba(50, 205, 50, 0.1);
+      color: #32cd32;
+      border: 1px solid rgba(50, 205, 50, 0.2);
+    }
+
     .obj-reward {
       margin-left: auto;
       font-weight: 800;
-      color: #ffd700;
+      color: var(--text-light-grey);
       font-size: 1.1rem;
+    }
+
+    .obj-reward.completed {
+      color: #ffd700;
+      text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
     }
     
     /* Profile Form */
@@ -1958,6 +2108,9 @@ export class MemberDashboardComponent implements OnInit {
     this.http.post<any>(`${api}/member/buy-pack`, {}, { headers }).subscribe({
       next: (res) => {
         this.packBuying.set(false);
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('pack_bought', 'true');
+        }
         this.loadAllData();
         alert(res.message);
       },
@@ -1966,6 +2119,29 @@ export class MemberDashboardComponent implements OnInit {
         alert("Erreur lors de la simulation d'achat.");
       }
     });
+  }
+
+  hasReservations(): boolean {
+    return this.reservations().length > 0;
+  }
+
+  hasCompletedSession(): boolean {
+    return this.reservations().some(r => this.isPastDate(r.date_debut));
+  }
+
+  hasLeftReview(): boolean {
+    return this.reservations().some(r => r.avis_laisse);
+  }
+
+  hasBoughtPack(): boolean {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('pack_bought') === 'true';
+    }
+    return false;
+  }
+
+  hasParrainageBadge(): boolean {
+    return this.badges().some(b => b.type === 'parrainage' && b.unlocked);
   }
 
   openReviewPrompt(resv: any) {
