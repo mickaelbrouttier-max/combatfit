@@ -16,7 +16,13 @@ app.use(cors({
   credentials: true
 }));
 
-app.use(express.json());
+app.use(express.json({
+  verify: (req, res, buf) => {
+    if (req.originalUrl && req.originalUrl.includes('/api/stripe/webhook')) {
+      req.rawBody = buf;
+    }
+  }
+}));
 // Forcer le fuseau horaire
 db.query("SET time_zone = '+02:00'").catch(err => {
   console.error("⚠️ Impossible de forcer le fuseau horaire (Problème de connexion BDD) :", err.message);
@@ -601,6 +607,168 @@ app.post('/api/member/review', authMiddleware, async (req, res) => {
     console.error(err);
     res.status(500).json({ error: "Erreur serveur" });
   }
+});
+
+// ==========================================
+// INTEGRATION STRIPE PAYMENTS
+// ==========================================
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+
+// 1. Créer une session Stripe Checkout
+app.post('/api/stripe/create-checkout-session', async (req, res) => {
+  const { nom_client, email_client, telephone_client, prestation, date_debut, date_fin, remarques, user_id } = req.body;
+  
+  if (!nom_client || !email_client || !telephone_client || !prestation || !date_debut || !date_fin) {
+    return res.status(400).json({ error: "Champs obligatoires manquants." });
+  }
+  
+  try {
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ['card'],
+      line_items: [
+        {
+          price_data: {
+            currency: 'eur',
+            product_data: {
+              name: `Séance CombatFit : ${prestation}`,
+              description: `Entraînement de 1h30 le ${date_debut} à ${date_fin}`,
+            },
+            unit_amount: 3500, // 35.00 € (en centimes)
+          },
+          quantity: 1,
+        },
+      ],
+      mode: 'payment',
+      success_url: 'https://mickaelbrouttier-max.github.io/combatfit/#/espace-membre?payment=success',
+      cancel_url: 'https://mickaelbrouttier-max.github.io/combatfit/#/espace-membre?payment=cancel',
+      customer_email: email_client,
+      metadata: {
+        nom_client,
+        email_client,
+        telephone_client,
+        prestation,
+        date_debut,
+        date_fin,
+        remarques: remarques || '',
+        user_id: user_id ? String(user_id) : ''
+      },
+    });
+    
+    res.json({ url: session.url });
+  } catch (err) {
+    console.error("Erreur création session Stripe :", err);
+    res.status(500).json({ error: "Erreur lors de l'initialisation du paiement Stripe." });
+  }
+});
+
+// 2. Webhook de validation Stripe (sécurisé par signature)
+app.post('/api/stripe/webhook', async (req, res) => {
+  const sig = req.headers['stripe-signature'];
+  let event;
+  
+  try {
+    const rawBody = req.rawBody;
+    if (!rawBody) {
+      throw new Error("Le corps brut (raw body) de la requête est introuvable.");
+    }
+    event = stripe.webhooks.constructEvent(rawBody, sig, process.env.STRIPE_WEBHOOK_SECRET);
+  } catch (err) {
+    console.error("⚠️ Erreur Webhook Stripe (Signature) :", err.message);
+    return res.status(400).send(`Webhook Error: ${err.message}`);
+  }
+  
+  if (event.type === 'checkout.session.completed') {
+    const session = event.data.object;
+    const meta = session.metadata;
+    
+    try {
+      console.log(`🔔 Stripe Webhook : Paiement complété pour ${meta.email_client}. Traitement de la réservation...`);
+      
+      // Calcul des dates début et fin MySQL
+      const dateDebutString = `${meta.date_debut} ${meta.date_fin}:00`;
+      
+      const [h, m] = meta.date_fin.split(':').map(Number);
+      let endMinutes = m + 90;
+      let endHours = h + Math.floor(endMinutes / 60);
+      endMinutes = endMinutes % 60;
+      const timeFinCalculated = `${String(endHours).padStart(2, '0')}:${String(endMinutes).padStart(2, '0')}`;
+      const dateFinString = `${meta.date_debut} ${timeFinCalculated}:00`;
+      
+      const uId = meta.user_id ? parseInt(meta.user_id) : null;
+      
+      // Détecter si c'est sa 1ère réservation pour donner les 50 trophées bonus
+      let isFirstReservation = false;
+      if (uId) {
+        const [existingRes] = await db.query("SELECT id FROM reservations WHERE user_id = ?", [uId]);
+        if (existingRes.length === 0) {
+          isFirstReservation = true;
+        }
+      }
+      
+      // Insérer la réservation
+      const sql = `
+        INSERT INTO reservations 
+        (nom_client, email_client, telephone_client, prestation, date_debut, date_fin, remarques, user_id) 
+        VALUES (?, ?, ?, ?, STR_TO_DATE(?, '%Y-%m-%d %H:%i:%s'), STR_TO_DATE(?, '%Y-%m-%d %H:%i:%s'), ?, ?)
+      `;
+      await db.query(sql, [
+        meta.nom_client,
+        meta.email_client,
+        meta.telephone_client,
+        meta.prestation,
+        dateDebutString,
+        dateFinString,
+        (meta.remarques ? meta.remarques + '\n[Paiement Stripe OK]' : '[Paiement Stripe OK]'),
+        uId
+      ]);
+      
+      // Créditer le bonus de 1ère réservation si applicable
+      if (isFirstReservation && uId) {
+        await db.query("UPDATE users SET points = points + 50 WHERE id = ?", [uId]);
+        console.log(`🏆 Bonus +50 Trophées accordé à l'utilisateur ${uId} pour son 1er RDV.`);
+      }
+      
+      // Envoyer l'e-mail de confirmation via Brevo API
+      if (process.env.BREVO_API_KEY) {
+        fetch('https://api.brevo.com/v3/smtp/email', {
+          method: 'POST',
+          headers: {
+            'accept': 'application/json',
+            'api-key': process.env.BREVO_API_KEY,
+            'content-type': 'application/json'
+          },
+          body: JSON.stringify({
+            sender: { name: "Réservations CombatFit", email: "combatfit.coaching@gmail.com" },
+            to: [
+              { email: meta.email_client, name: meta.nom_client },
+              { email: "combatfit.coaching@gmail.com", name: "CombatFit Coaching" },
+              { email: "mickael.brouttier@gmail.com", name: "Mickaël Brouttier" }
+            ],
+            subject: "Confirmation de votre réservation payée",
+            textContent: `Bonjour ${meta.nom_client}, votre créneau pour ${meta.prestation} est validé et payé le ${meta.date_debut} à ${meta.date_fin}. Mathias vous recontactera au : ${meta.telephone_client}.`
+          })
+        })
+        .then(response => {
+          if (!response.ok) {
+            return response.text().then(errText => console.error("Erreur Brevo API webhook :", errText));
+          }
+          console.log("Email de confirmation envoyé avec succès via Brevo API.");
+        })
+        .catch((mailErr) => {
+          console.error("ERREUR envoi email webhook :", mailErr);
+        });
+      } else {
+        console.warn("BREVO_API_KEY non configurée. Envoi d'e-mail ignoré.");
+      }
+      
+      console.log(`✅ Réservation insérée avec succès en BDD pour ${meta.email_client} !`);
+    } catch (dbErr) {
+      console.error("❌ Erreur d'enregistrement Webhook en BDD :", dbErr);
+      return res.status(500).json({ error: "Erreur serveur lors de la validation du créneau." });
+    }
+  }
+  
+  res.json({ received: true });
 });
 
 const PORT = process.env.PORT || 3000;

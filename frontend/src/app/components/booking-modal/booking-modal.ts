@@ -205,7 +205,7 @@ export class BookingModalComponent {
   }
 
   submitForm() {
-    console.log("CLIC DETECTE : La fonction submitForm est appelée !");
+    console.log("CLIC DETECTE : La fonction submitForm est appelée pour Stripe !");
     this.isSubmitting.set(true);
     const baseUrl = window.location.hostname === 'localhost' 
       ? 'http://localhost:3000' 
@@ -230,23 +230,15 @@ export class BookingModalComponent {
       user_id: userId
     };
 
-this.http.post(`${baseUrl}/api/reservations`, payload).subscribe({
-    next: () => {
-      this.isSubmitting.set(false);
-      this.isSuccess.set(true);
-
-        if (this.reservationComp) {
-          // 1. Mise à jour du Set local pour un feedback instantané
-          this.reservationComp.creneauxOccupes.add(this.formData.time);
-          
-          // 2. Synchronisation réelle avec la base (avec forçage de rendu via cdr)
-          this.reservationComp.chargerReservations();
-        }
+    this.http.post<{ url: string }>(`${baseUrl}/api/stripe/create-checkout-session`, payload).subscribe({
+      next: (res) => {
+        // Rediriger vers Stripe Checkout
+        window.location.href = res.url;
       },
       error: (err) => {
         this.isSubmitting.set(false);
-        console.error("ERREUR DÉTAILLÉE :", err);
-        alert('Erreur : ' + (err.error?.message || 'Problème de connexion.'));
+        console.error("ERREUR DÉTAILLÉE STRIPE :", err);
+        alert('Erreur Stripe : ' + (err.error?.error || 'Problème de connexion.'));
       }
     });
   }

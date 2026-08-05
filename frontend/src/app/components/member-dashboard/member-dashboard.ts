@@ -1981,6 +1981,26 @@ export class MemberDashboardComponent implements OnInit {
 
   ngOnInit() {
     this.loadAllData();
+    this.checkPaymentStatus();
+  }
+
+  checkPaymentStatus() {
+    if (typeof window !== 'undefined') {
+      const hash = window.location.hash;
+      if (hash.includes('payment=success')) {
+        this.activeObjectiveNotification.set({
+          title: "Séance Réservée & Payée",
+          reward: "+50 🏆",
+          desc: "Félicitations ! Votre créneau a été réservé et validé suite à votre paiement Stripe."
+        });
+        const newUrl = window.location.pathname + window.location.hash.split('?')[0];
+        window.history.replaceState({}, document.title, newUrl);
+      } else if (hash.includes('payment=cancel')) {
+        alert("Paiement annulé. Votre créneau n'a pas été réservé.");
+        const newUrl = window.location.pathname + window.location.hash.split('?')[0];
+        window.history.replaceState({}, document.title, newUrl);
+      }
+    }
   }
 
   private getApiUrl(): string {
