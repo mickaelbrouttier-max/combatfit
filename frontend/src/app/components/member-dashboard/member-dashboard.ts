@@ -299,6 +299,35 @@ interface RewardItem {
         </div>
 
       </div>
+
+      <!-- Modal Déverrouillage de Badge (Haut Fait / Jeu Vidéo Style) -->
+      <div *ngIf="activeUnlockNotification()" class="unlock-backdrop">
+        <div class="unlock-card">
+          <!-- Effet de lumière / rayons tournants en arrière-plan -->
+          <div class="unlock-glow-container">
+            <div class="unlock-rays"></div>
+          </div>
+          
+          <div class="unlock-content">
+            <span class="unlock-title">SUCCÈS DÉVERROUILLÉ !</span>
+            
+            <div class="unlock-badge-showcase">
+              <div class="unlock-badge-circle">
+                <span class="material-icons-outlined unlock-badge-icon">
+                  {{ activeUnlockNotification()?.icone }}
+                </span>
+              </div>
+            </div>
+            
+            <h3 class="unlock-badge-name">{{ activeUnlockNotification()?.nom }}</h3>
+            <p class="unlock-badge-desc">{{ activeUnlockNotification()?.description }}</p>
+            
+            <button (click)="closeUnlockNotification()" class="unlock-confirm-btn">
+              <span class="material-icons-outlined">workspace_premium</span> Voir mes badges
+            </button>
+          </div>
+        </div>
+      </div>
     </section>
   `,
   styles: [`
@@ -307,7 +336,10 @@ interface RewardItem {
       color: var(--text-white);
       padding: 30px 0 60px 0;
       min-height: 85vh;
+      position: relative;
     }
+
+
 
     .container {
       max-width: 1000px;
@@ -1098,6 +1130,7 @@ interface RewardItem {
         width: 100%;
         justify-content: center;
       }
+      }
       .tab-content-card {
         padding: 24px;
       }
@@ -1105,6 +1138,161 @@ interface RewardItem {
         flex-direction: column;
         gap: 16px;
       }
+    }
+
+    /* Modal Déverrouillage de Badge (Gaming style) */
+    .unlock-backdrop {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background-color: rgba(5, 5, 7, 0.9);
+      backdrop-filter: blur(15px);
+      z-index: 3000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .unlock-card {
+      position: relative;
+      background-color: #0d0d11;
+      border: 2px solid var(--accent-gold);
+      border-radius: var(--border-radius-lg);
+      padding: 40px 30px;
+      width: 100%;
+      max-width: 450px;
+      text-align: center;
+      box-shadow: 0 0 50px rgba(197, 168, 128, 0.25), inset 0 0 20px rgba(197, 168, 128, 0.1);
+      overflow: hidden;
+      animation: scaleUpUnlock 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+    }
+
+    @keyframes scaleUpUnlock {
+      from { transform: scale(0.85); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    .unlock-glow-container {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 500px;
+      height: 500px;
+      pointer-events: none;
+      z-index: 1;
+      opacity: 0.75;
+    }
+
+    .unlock-rays {
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle, rgba(197, 168, 128, 0.15) 0%, transparent 60%),
+                  repeating-conic-gradient(from 0deg, transparent 0deg, transparent 15deg, rgba(197, 168, 128, 0.05) 15deg, rgba(197, 168, 128, 0.05) 30deg);
+      border-radius: 50%;
+      animation: rotateRays 20s linear infinite;
+    }
+
+    @keyframes rotateRays {
+      to { transform: rotate(360deg); }
+    }
+
+    .unlock-content {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .unlock-title {
+      font-family: var(--font-headings);
+      font-size: 0.9rem;
+      font-weight: 900;
+      color: var(--accent-gold);
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      text-shadow: 0 0 10px rgba(197, 168, 128, 0.4);
+      animation: blinkText 1.5s infinite ease-in-out;
+    }
+
+    @keyframes blinkText {
+      0%, 100% { opacity: 0.8; text-shadow: 0 0 5px rgba(197, 168, 128, 0.3); }
+      50% { opacity: 1; text-shadow: 0 0 20px rgba(197, 168, 128, 0.6); }
+    }
+
+    .unlock-badge-showcase {
+      margin: 15px 0;
+      animation: bounceBadge 3s infinite ease-in-out;
+    }
+
+    @keyframes bounceBadge {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+
+    .unlock-badge-circle {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(208, 0, 0, 0.2) 0%, rgba(13, 13, 17, 0.9) 100%);
+      border: 3px solid var(--primary-red);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--primary-red);
+      box-shadow: var(--glow-red), 0 0 30px rgba(208, 0, 0, 0.2);
+    }
+
+    .unlock-badge-icon {
+      font-size: 3.5rem;
+      text-shadow: 0 0 15px rgba(208, 0, 0, 0.5);
+    }
+
+    .unlock-badge-name {
+      font-size: 1.6rem;
+      font-weight: 900;
+      color: var(--text-white);
+      margin: 0;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .unlock-badge-desc {
+      font-size: 0.95rem;
+      color: var(--text-light-grey);
+      margin: 0 0 15px 0;
+      line-height: 1.5;
+      max-width: 320px;
+    }
+
+    .unlock-confirm-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 28px;
+      background-color: var(--primary-red);
+      color: var(--text-white);
+      border: none;
+      border-radius: var(--border-radius-sm);
+      font-weight: 800;
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      cursor: pointer;
+      box-shadow: var(--glow-red);
+      transition: var(--transition-medium);
+    }
+
+    .unlock-confirm-btn:hover {
+      background-color: #ff1a1a;
+      transform: scale(1.05);
+      box-shadow: 0 0 25px rgba(208, 0, 0, 0.6);
+    }
     }
   `]
 })
@@ -1119,6 +1307,7 @@ export class MemberDashboardComponent implements OnInit {
     const list = this.badges();
     return list.filter(b => b.unlocked && !this.seenBadges.includes(b.id)).length;
   });
+  activeUnlockNotification = signal<BadgeItem | null>(null);
 
   activeTab = signal<'seances' | 'progression' | 'badges' | 'boutique'>('seances');
   activeMetric = signal<'poids' | 'pompes' | 'gainage'>('poids');
@@ -1203,8 +1392,14 @@ export class MemberDashboardComponent implements OnInit {
     // 4. Badges
     this.http.get<BadgeItem[]>(`${api}/member/badges`, { headers }).subscribe({
       next: (data) => {
+        const currentTab = this.activeTab();
+        const newlyUnlocked = data.filter(b => b.unlocked && !this.seenBadges.includes(b.id));
+        
         this.badges.set(data);
-        if (this.activeTab() === 'badges') {
+
+        if (currentTab !== 'badges' && newlyUnlocked.length > 0) {
+          this.activeUnlockNotification.set(newlyUnlocked[0]);
+        } else if (currentTab === 'badges') {
           const unlockedIds = data.filter(b => b.unlocked).map(b => b.id);
           this.seenBadges = Array.from(new Set([...this.seenBadges, ...unlockedIds]));
           localStorage.setItem('seen_badges', JSON.stringify(this.seenBadges));
@@ -1281,6 +1476,25 @@ export class MemberDashboardComponent implements OnInit {
     const unlockedIds = this.badges().filter(b => b.unlocked).map(b => b.id);
     this.seenBadges = Array.from(new Set([...this.seenBadges, ...unlockedIds]));
     localStorage.setItem('seen_badges', JSON.stringify(this.seenBadges));
+  }
+
+  closeUnlockNotification() {
+    const badge = this.activeUnlockNotification();
+    if (badge) {
+      this.seenBadges = Array.from(new Set([...this.seenBadges, badge.id]));
+      localStorage.setItem('seen_badges', JSON.stringify(this.seenBadges));
+      this.activeUnlockNotification.set(null);
+
+      // Check if there are other newly unlocked badges in the queue
+      const nextUnseen = this.badges().filter(b => b.unlocked && !this.seenBadges.includes(b.id));
+      if (nextUnseen.length > 0) {
+        setTimeout(() => {
+          this.activeUnlockNotification.set(nextUnseen[0]);
+        }, 300);
+      } else {
+        this.selectBadgesTab();
+      }
+    }
   }
 
   copyReferralCode() {
