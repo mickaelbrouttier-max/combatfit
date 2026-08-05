@@ -111,8 +111,9 @@ interface RewardItem {
           <button [class.active]="activeTab() === 'progression'" (click)="activeTab.set('progression')">
             <span class="material-icons-outlined">trending_up</span> Progression
           </button>
-          <button [class.active]="activeTab() === 'badges'" (click)="activeTab.set('badges')">
+          <button [class.active]="activeTab() === 'badges'" (click)="selectBadgesTab()" class="badges-tab-btn">
             <span class="material-icons-outlined">emoji_events</span> Badges
+            <span *ngIf="unseenBadgesCount() > 0" class="tab-notification-badge">{{ unseenBadgesCount() }}</span>
           </button>
           <button [class.active]="activeTab() === 'boutique'" (click)="activeTab.set('boutique')">
             <span class="material-icons-outlined">storefront</span> Boutique
@@ -514,6 +515,34 @@ interface RewardItem {
       align-items: center;
       gap: 8px;
       transition: var(--transition-medium);
+    }
+
+    .badges-tab-btn {
+      position: relative;
+    }
+    
+    .tab-notification-badge {
+      position: absolute;
+      top: -6px;
+      right: -6px;
+      background-color: var(--primary-red);
+      color: var(--text-white);
+      font-size: 0.7rem;
+      font-weight: 700;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: var(--glow-red);
+      border: 1.5px solid var(--dark-surface);
+      animation: pulse-badge 2s infinite ease-in-out;
+    }
+
+    @keyframes pulse-badge {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.15); }
     }
 
     .dashboard-tabs button:hover {
@@ -1060,6 +1089,11 @@ export class MemberDashboardComponent implements OnInit {
   stats = signal<StatRecord[]>([]);
   badges = signal<BadgeItem[]>([]);
   rewards = signal<RewardItem[]>([]);
+  seenBadges: number[] = [];
+  unseenBadgesCount = computed(() => {
+    const list = this.badges();
+    return list.filter(b => b.unlocked && !this.seenBadges.includes(b.id)).length;
+  });
 
   activeTab = signal<'seances' | 'progression' | 'badges' | 'boutique'>('seances');
   activeMetric = signal<'poids' | 'pompes' | 'gainage'>('poids');
@@ -1084,6 +1118,16 @@ export class MemberDashboardComponent implements OnInit {
   ) {
     if (!localStorage.getItem('member_token')) {
       this.router.navigate(['/connexion']);
+    }
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('seen_badges');
+      if (stored) {
+        try {
+          this.seenBadges = JSON.parse(stored);
+        } catch (e) {
+          this.seenBadges = [];
+        }
+      }
     }
   }
 
@@ -1133,7 +1177,14 @@ export class MemberDashboardComponent implements OnInit {
 
     // 4. Badges
     this.http.get<BadgeItem[]>(`${api}/member/badges`, { headers }).subscribe({
-      next: (data) => this.badges.set(data),
+      next: (data) => {
+        this.badges.set(data);
+        if (this.activeTab() === 'badges') {
+          const unlockedIds = data.filter(b => b.unlocked).map(b => b.id);
+          this.seenBadges = Array.from(new Set([...this.seenBadges, ...unlockedIds]));
+          localStorage.setItem('seen_badges', JSON.stringify(this.seenBadges));
+        }
+      },
       error: (err) => console.error(err)
     });
 
@@ -1198,6 +1249,13 @@ export class MemberDashboardComponent implements OnInit {
   // Actions
   goToBooking() {
     this.bookingService.open();
+  }
+
+  selectBadgesTab() {
+    this.activeTab.set('badges');
+    const unlockedIds = this.badges().filter(b => b.unlocked).map(b => b.id);
+    this.seenBadges = Array.from(new Set([...this.seenBadges, ...unlockedIds]));
+    localStorage.setItem('seen_badges', JSON.stringify(this.seenBadges));
   }
 
   copyReferralCode() {
@@ -1313,11 +1371,20 @@ export class MemberDashboardComponent implements OnInit {
       
       const y = 150 - ((d.val - min) / (max - min) * height);
       
-      // Date label (DD/MM)
+      // Date label (DD/MM/YYYY)
       let dateLabel = '';
       if (d.date) {
-        const parts = d.date.split('-');
-        if (parts.length === 3) dateLabel = `${parts[2]}/${parts[1]}`;
+        const dateObj = new Date(d.date);
+        if (!isNaN(dateObj.getTime())) {
+          const day = String(dateObj.getDate()).padStart(2, '0');
+          const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+          const year = dateObj.getFullYear();
+          dateLabel = `${day}/${month}/${year}`;
+        } else {
+          const dateOnly = d.date.includes('T') ? d.date.split('T')[0] : d.date;
+          const parts = dateOnly.split('-');
+          if (parts.length === 3) dateLabel = `${parts[2]}/${parts[1]}/${parts[0]}`;
+        }
       }
 
       return { x, y, val: d.val, dateLabel };
