@@ -151,6 +151,9 @@ db.getConnection()
 
       // S'assurer que le T-Shirt CombatFit vaut au moins 500 points en BDD
       await connection.query("UPDATE rewards SET cout_points = 500 WHERE nom = 'T-Shirt CombatFit' AND cout_points < 500");
+      // Ajuster le coût de la séance offerte à 800 trophées et du shaker à 200 trophées
+      await connection.query("UPDATE rewards SET cout_points = 800 WHERE nom = 'Séance offerte'");
+      await connection.query("UPDATE rewards SET cout_points = 200 WHERE nom = 'Shaker CombatFit'");
 
       // 8. Insertion des badges par défaut s'il n'y en a aucun
       const [badgesCount] = await connection.query("SELECT COUNT(*) as count FROM badges");
@@ -174,9 +177,9 @@ db.getConnection()
       if (rewardsCount[0].count === 0) {
         console.log("🌱 Insertion des récompenses par défaut...");
         const defaultRewards = [
-          ['Séance offerte', '1 séance de coaching de 90 min offerte', 300, -1],
+          ['Séance offerte', '1 séance de coaching de 90 min offerte', 800, -1],
           ['T-Shirt CombatFit', 'Le t-shirt officiel pour vos entraînements', 500, 50],
-          ['Shaker CombatFit', 'Le shaker pour vos boissons de récupération', 80, 100]
+          ['Shaker CombatFit', 'Le shaker pour vos boissons de récupération', 200, 100]
         ];
         for (const r of defaultRewards) {
           await connection.query("INSERT INTO rewards (nom, description, cout_points, stock) VALUES (?, ?, ?, ?)", r);
