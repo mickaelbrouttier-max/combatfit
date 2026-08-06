@@ -572,11 +572,11 @@ app.post('/api/member/objectives/visit', authMiddleware, async (req, res) => {
   }
 });
 
-// Route Acheter un pack (Acheter un pack -> 🏆 150)
+// Route Acheter un pack (Acheter un pack -> 🏆 100)
 app.post('/api/member/buy-pack', authMiddleware, async (req, res) => {
   try {
-    await db.query("UPDATE users SET points = points + 150 WHERE id = ?", [req.user.id]);
-    res.json({ success: true, message: "Félicitations ! Vous avez acheté un pack d'entraînement : +150 Trophées !" });
+    await db.query("UPDATE users SET points = points + 100 WHERE id = ?", [req.user.id]);
+    res.json({ success: true, message: "Félicitations ! Vous avez acheté un pack d'entraînement : +100 Trophées !" });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Erreur serveur" });

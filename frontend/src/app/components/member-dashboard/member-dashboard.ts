@@ -294,17 +294,14 @@ interface RewardItem {
               <p>{{ boutiqueMessage() }}</p>
             </div>
 
-            <!-- Promo Pack Banner -->
+            <!-- Message de motivation Boutique -->
             <div class="pack-promo-banner">
-              <div class="pack-promo-content">
+              <div class="pack-promo-content" style="display: flex; align-items: center; gap: 20px;">
+                <span class="material-icons-outlined" style="font-size: 3rem; color: var(--accent-gold);">fitness_center</span>
                 <div>
-                  <h4 class="pack-promo-title">Vous souhaitez accélérer votre progression ?</h4>
-                  <p class="pack-promo-desc">Achetez un pack d'entraînement (séances de coaching) et gagnez instantanément un bonus de trophées !</p>
+                  <h4 class="pack-promo-title" style="margin-bottom: 4px;">Pour gagner des trophées et avoir un summer body de rêve 🥋</h4>
+                  <p class="pack-promo-desc" style="margin: 0;">Entraînez-vous dur avec Mathias, progressez à votre rythme et échangez vos trophées cumulés contre des cadeaux ou des séances gratuites !</p>
                 </div>
-                <button (click)="buyPack()" class="pack-promo-btn" [disabled]="packBuying()">
-                  <span *ngIf="!packBuying()"><span class="material-icons-outlined">shopping_cart</span> Acheter un pack (+150 🏆)</span>
-                  <span *ngIf="packBuying()" class="spinner btn-spinner"></span>
-                </button>
               </div>
             </div>
 
@@ -335,6 +332,25 @@ interface RewardItem {
                       <span *ngIf="redeemLoading() !== r.id">Échanger</span>
                       <span *ngIf="redeemLoading() === r.id" class="spinner btn-spinner"></span>
                     </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Carte d'attente pour d'autres offres -->
+              <div class="reward-card" style="opacity: 0.75; cursor: default;">
+                <div class="reward-image-container">
+                  <div class="reward-image-placeholder" style="background-color: rgba(255,255,255,0.01);">
+                    <span class="material-icons-outlined reward-gift-icon" style="color: rgba(255,255,255,0.15); font-size: 3rem;">more_horiz</span>
+                  </div>
+                </div>
+                <div class="reward-details">
+                  <h4 class="reward-name">D'autres offres prochainement</h4>
+                  <p class="reward-desc">De nouveaux cadeaux exclusifs arriveront bientôt dans la boutique.</p>
+                  <div class="reward-bottom">
+                    <span class="reward-cost" style="color: var(--text-muted);">
+                      <span class="material-icons-outlined cost-icon" style="color: var(--text-muted);">lock</span>
+                      À venir
+                    </span>
                   </div>
                 </div>
               </div>
@@ -474,7 +490,7 @@ interface RewardItem {
                       {{ hasBoughtPack() ? 'Réalisé' : 'À faire' }}
                     </span>
                     <span class="obj-date-label" *ngIf="hasBoughtPack() && getObjectiveDate('pack')">le {{ getObjectiveDate('pack') }}</span>
-                    <span class="obj-reward" [class.completed]="hasBoughtPack()">+150 🏆</span>
+                    <span class="obj-reward" [class.completed]="hasBoughtPack()">+100 🏆</span>
                   </div>
                 </div>
               </div>
@@ -2335,7 +2351,7 @@ export class MemberDashboardComponent implements OnInit {
   }
 
   buyPack() {
-    if (!confirm("Simuler l'achat d'un pack d'entraînement pour gagner 150 trophées ?")) return;
+    if (!confirm("Simuler l'achat d'un pack d'entraînement pour gagner 100 trophées ?")) return;
     this.packBuying.set(true);
     
     const headers = this.getHeaders();
@@ -2351,7 +2367,7 @@ export class MemberDashboardComponent implements OnInit {
         this.loadAllData();
         this.activeObjectiveNotification.set({
           title: "Achat d'un Pack",
-          reward: "+150 🏆",
+          reward: "+100 🏆",
           desc: "Félicitations ! Vous avez acheté un pack d'entraînement CombatFit."
         });
       },
