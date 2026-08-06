@@ -491,3 +491,84 @@ button {
   font-size: 0.95rem;
   color: #32cd32;
 }
+
+/* ==========================================
+   MYSTERY REWARD CARD & INTERACTIVE BANNER
+   ========================================== */
+.coming-soon-card {
+  position: relative;
+  background: linear-gradient(135deg, rgba(20, 20, 24, 0.95) 0%, rgba(10, 10, 12, 0.98) 100%) !important;
+  border: 1px dashed rgba(197, 168, 128, 0.3) !important;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  overflow: hidden;
+  transition: all 0.4s ease;
+}
+
+.coming-soon-card:hover {
+  border-color: var(--accent-gold) !important;
+  box-shadow: 0 0 20px rgba(197, 168, 128, 0.2), inset 0 0 15px rgba(197, 168, 128, 0.05) !important;
+  transform: translateY(-5px);
+}
+
+.coming-soon-glow {
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(197, 168, 128, 0.03) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.coming-soon-placeholder {
+  background-color: rgba(197, 168, 128, 0.02) !important;
+  border: 1px solid rgba(197, 168, 128, 0.05) !important;
+}
+
+.coming-soon-icon {
+  color: rgba(197, 168, 128, 0.4) !important;
+  filter: drop-shadow(0 0 8px rgba(197, 168, 128, 0.15));
+}
+
+.coming-soon-title {
+  color: var(--accent-gold) !important;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.coming-soon-desc {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+.coming-soon-cost {
+  color: var(--accent-gold) !important;
+  font-weight: 600;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+@keyframes pulse-slow-animation {
+  0%, 100% { transform: scale(1); opacity: 0.8; }
+  50% { transform: scale(1.05); opacity: 0.4; }
+}
+
+.animate-pulse-slow {
+  animation: pulse-slow-animation 3s infinite ease-in-out;
+}
+
+.interactive-banner {
+  transition: all 0.3s ease;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.interactive-banner:hover {
+  border-color: var(--primary-red) !important;
+  background: linear-gradient(135deg, rgba(208, 0, 0, 0.05) 0%, rgba(20, 20, 24, 0.95) 100%) !important;
+  transform: scale(1.01);
+  box-shadow: 0 4px 20px rgba(208, 0, 0, 0.15);
+}

@@ -295,13 +295,18 @@ interface RewardItem {
             </div>
 
             <!-- Message de motivation Boutique -->
-            <div class="pack-promo-banner">
-              <div class="pack-promo-content" style="display: flex; align-items: center; gap: 20px;">
-                <span class="material-icons-outlined" style="font-size: 3rem; color: var(--accent-gold);">fitness_center</span>
-                <div>
-                  <h4 class="pack-promo-title" style="margin-bottom: 4px;">Pour gagner des trophées et avoir un summer body de rêve 🥋</h4>
-                  <p class="pack-promo-desc" style="margin: 0;">Entraînez-vous dur avec Mathias, progressez à votre rythme et échangez vos trophées cumulés contre des cadeaux ou des séances gratuites !</p>
+            <div class="pack-promo-banner interactive-banner" (click)="goToBooking()" style="cursor: pointer;">
+              <div class="pack-promo-content" style="display: flex; align-items: center; justify-content: space-between; gap: 20px; width: 100%;">
+                <div style="display: flex; align-items: center; gap: 20px;">
+                  <span class="material-icons-outlined" style="font-size: 3rem; color: var(--accent-gold);">fitness_center</span>
+                  <div>
+                    <h4 class="pack-promo-title" style="margin-bottom: 4px;">Pour gagner des trophées et avoir un summer body de rêve 🥋</h4>
+                    <p class="pack-promo-desc" style="margin: 0; color: var(--text-light-grey);">Entraînez-vous dur avec Mathias ! Cliquez ici pour réserver votre prochaine séance.</p>
+                  </div>
                 </div>
+                <button class="action-btn" style="padding: 10px 20px; font-size: 0.85rem; margin: 0; flex-shrink: 0; background: var(--primary-red); border-radius: var(--border-radius-sm); border: none; font-weight: 700; text-transform: uppercase;">
+                  Réserver
+                </button>
               </div>
             </div>
 
@@ -336,20 +341,21 @@ interface RewardItem {
                 </div>
               </div>
 
-              <!-- Carte d'attente pour d'autres offres -->
-              <div class="reward-card" style="opacity: 0.75; cursor: default;">
+              <!-- Carte d'attente stylisée -->
+              <div class="reward-card coming-soon-card" (click)="alertComingSoon()" style="cursor: pointer;">
+                <div class="coming-soon-glow"></div>
                 <div class="reward-image-container">
-                  <div class="reward-image-placeholder" style="background-color: rgba(255,255,255,0.01);">
-                    <span class="material-icons-outlined reward-gift-icon" style="color: rgba(255,255,255,0.15); font-size: 3rem;">more_horiz</span>
+                  <div class="reward-image-placeholder coming-soon-placeholder">
+                    <span class="material-icons-outlined reward-gift-icon coming-soon-icon animate-pulse-slow" style="font-size: 3rem;">lock</span>
                   </div>
                 </div>
                 <div class="reward-details">
-                  <h4 class="reward-name">D'autres offres prochainement</h4>
-                  <p class="reward-desc">De nouveaux cadeaux exclusifs arriveront bientôt dans la boutique.</p>
+                  <h4 class="reward-name coming-soon-title">Offres Mystères</h4>
+                  <p class="reward-desc coming-soon-desc">Mathias vous prépare des surprises exclusives (matériels, thématiques). Restez à l'affût !</p>
                   <div class="reward-bottom">
-                    <span class="reward-cost" style="color: var(--text-muted);">
-                      <span class="material-icons-outlined cost-icon" style="color: var(--text-muted);">lock</span>
-                      À venir
+                    <span class="reward-cost coming-soon-cost">
+                      <span class="material-icons-outlined cost-icon">auto_awesome</span>
+                      Bientôt disponible
                     </span>
                   </div>
                 </div>
@@ -2702,5 +2708,9 @@ export class MemberDashboardComponent implements OnInit {
         alert("Erreur Stripe lors de l'initialisation du don : " + (err.error?.error || 'Veuillez réessayer.'));
       }
     });
+  }
+
+  alertComingSoon() {
+    alert("De nouvelles récompenses exclusives (coaching à thème, nutrition, équipements de combat premium) sont en préparation. Continuez à cumuler vos trophées !");
   }
 }
