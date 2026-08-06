@@ -350,8 +350,8 @@ interface RewardItem {
                   </div>
                 </div>
                 <div class="reward-details">
-                  <h4 class="reward-name coming-soon-title">Offres Mystères</h4>
-                  <p class="reward-desc coming-soon-desc">Mathias vous prépare des surprises exclusives (matériels, thématiques). Restez à l'affût !</p>
+                  <h4 class="reward-name coming-soon-title">Prochaines Récompenses</h4>
+                  <p class="reward-desc coming-soon-desc">De nouveaux cadeaux exclusifs (coaching à thème, nutrition, équipements de combat premium) arriveront très prochainement !</p>
                   <div class="reward-bottom">
                     <span class="reward-cost coming-soon-cost">
                       <span class="material-icons-outlined cost-icon">auto_awesome</span>
