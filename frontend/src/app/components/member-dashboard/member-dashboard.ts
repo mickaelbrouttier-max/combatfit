@@ -125,6 +125,9 @@ interface RewardItem {
           <button [class.active]="activeTab() === 'boutique'" (click)="activeTab.set('boutique')">
             <span class="material-icons-outlined">storefront</span> Boutique
           </button>
+          <button [class.active]="activeTab() === 'don'" (click)="activeTab.set('don')">
+            <span class="material-icons-outlined">favorite</span> Soutenir
+          </button>
           <button [class.active]="activeTab() === 'profile'" (click)="activeTab.set('profile')">
             <span class="material-icons-outlined">person</span> Profil
           </button>
@@ -529,6 +532,83 @@ interface RewardItem {
                 <span *ngIf="profileSaving()" class="spinner btn-spinner"></span>
               </button>
             </form>
+          </div>
+
+          <!-- Onglet Don -->
+          <div *ngIf="activeTab() === 'don'">
+            <h3 class="tab-title">Soutenir CombatFit & Mathias</h3>
+            <p class="tab-subtitle">Contribuez au développement du club en finançant du nouveau matériel (sacs de frappe, gants de boxe, protections, matériel de préparation physique) et débloquez de nombreux Trophées 🏆 !</p>
+            
+            <div class="don-intro-banner">
+              <span class="material-icons-outlined don-banner-icon">volunteer_activism</span>
+              <div class="don-banner-text">
+                <strong>Votre générosité est récompensée :</strong> Chaque don vous rapporte des Trophées 🏆 afin de grimper dans le classement des ceintures du club. Les dons sont 100% sécurisés via Stripe.
+              </div>
+            </div>
+
+            <div class="don-cards-grid">
+              <!-- Carte 1 EUR -->
+              <div class="don-card" [class.selected]="selectedDonationAmount() === 1" (click)="selectDonationAmount(1)">
+                <div class="don-card-badge bronze">Bronze</div>
+                <div class="don-card-icon-wrapper">
+                  <span class="material-icons-outlined don-card-icon">favorite_border</span>
+                </div>
+                <div class="don-card-amount">1 €</div>
+                <div class="don-card-reward">+5 🏆 Trophées</div>
+                <p class="don-card-desc">Un petit coup de pouce symbolique qui fait chaud au cœur !</p>
+              </div>
+
+              <!-- Carte 5 EUR -->
+              <div class="don-card" [class.selected]="selectedDonationAmount() === 5" (click)="selectDonationAmount(5)">
+                <div class="don-card-badge silver">Argent</div>
+                <div class="don-card-icon-wrapper">
+                  <span class="material-icons-outlined don-card-icon">favorite</span>
+                </div>
+                <div class="don-card-amount">5 €</div>
+                <div class="don-card-reward">+30 🏆 Trophées</div>
+                <p class="don-card-desc">Aide à renouveler les petits équipements (bandages, cibles).</p>
+              </div>
+
+              <!-- Carte 10 EUR -->
+              <div class="don-card" [class.selected]="selectedDonationAmount() === 10" (click)="selectDonationAmount(10)">
+                <div class="don-card-badge gold">Or</div>
+                <div class="don-card-icon-wrapper">
+                  <span class="material-icons-outlined don-card-icon">workspace_premium</span>
+                </div>
+                <div class="don-card-amount">10 €</div>
+                <div class="don-card-reward">+70 🏆 Trophées</div>
+                <p class="don-card-desc">Finance le matériel d'entraînement (paos, pattes d'ours).</p>
+              </div>
+
+              <!-- Carte 25 EUR -->
+              <div class="don-card" [class.selected]="selectedDonationAmount() === 25" (click)="selectDonationAmount(25)">
+                <div class="don-card-badge plat">Platine</div>
+                <div class="don-card-icon-wrapper">
+                  <span class="material-icons-outlined don-card-icon">emoji_events</span>
+                </div>
+                <div class="don-card-amount">25 €</div>
+                <div class="don-card-reward">+200 🏆 Trophées</div>
+                <p class="don-card-desc">Soutien majeur pour le renouvellement des gros sacs de frappe !</p>
+              </div>
+            </div>
+
+            <!-- Bouton de paiement -->
+            <div class="don-action-section">
+              <div class="don-summary-box" *ngIf="selectedDonationAmount() > 0">
+                Vous avez choisi de faire un don de <strong class="highlight-amt">{{ selectedDonationAmount() }} €</strong>.
+                Vous allez recevoir <strong class="highlight-pts">+{{ getDonationPoints(selectedDonationAmount()) }} 🏆 Trophées</strong> !
+              </div>
+              
+              <button (click)="submitDonation()" class="action-btn don-submit-btn" [disabled]="selectedDonationAmount() === 0 || donSaving()">
+                <span *ngIf="!donSaving()">Soutenir avec {{ selectedDonationAmount() > 0 ? selectedDonationAmount() + ' €' : 'Stripe' }}</span>
+                <span *ngIf="donSaving()" class="spinner btn-spinner"></span>
+              </button>
+              
+              <p class="don-security-hint">
+                <span class="material-icons-outlined lock-hint-icon">lock</span>
+                Paiement 100% sécurisé et crypté via Stripe. Aucune donnée bancaire n'est conservée.
+              </p>
+            </div>
           </div>
 
         </div>
@@ -1943,8 +2023,12 @@ export class MemberDashboardComponent implements OnInit {
   activeLevelUpNotification = signal<{ oldLevel: number; newLevel: number; belt: string } | null>(null);
   activeObjectiveNotification = signal<{ title: string; reward: string; desc: string } | null>(null);
 
-  activeTab = signal<'seances' | 'progression' | 'badges' | 'boutique' | 'objectifs' | 'profile'>('seances');
+  activeTab = signal<'seances' | 'progression' | 'badges' | 'boutique' | 'objectifs' | 'profile' | 'don'>('seances');
   activeMetric = signal<'poids' | 'pompes' | 'gainage'>('poids');
+
+  // Donation signals
+  selectedDonationAmount = signal<number>(10);
+  donSaving = signal<boolean>(false);
 
   // Formulaire stats
   newStat = {
@@ -1987,7 +2071,18 @@ export class MemberDashboardComponent implements OnInit {
   checkPaymentStatus() {
     if (typeof window !== 'undefined') {
       const hash = window.location.hash;
-      if (hash.includes('payment=success')) {
+      if (hash.includes('payment=success_donation')) {
+        const parts = hash.split('payment=success_donation_');
+        const donationAmount = parts.length > 1 ? parts[1].split('&')[0] : '';
+        const points = this.getDonationPoints(Number(donationAmount));
+        this.activeObjectiveNotification.set({
+          title: "Merci pour votre Don !",
+          reward: `+${points} 🏆`,
+          desc: `Un immense merci pour votre généreux soutien de ${donationAmount} € au club CombatFit ! Vos Trophées ont été crédités.`
+        });
+        const newUrl = window.location.pathname + window.location.hash.split('?')[0];
+        window.history.replaceState({}, document.title, newUrl);
+      } else if (hash.includes('payment=success')) {
         this.activeObjectiveNotification.set({
           title: "Séance Réservée & Payée",
           reward: "+50 🏆",
@@ -1996,7 +2091,7 @@ export class MemberDashboardComponent implements OnInit {
         const newUrl = window.location.pathname + window.location.hash.split('?')[0];
         window.history.replaceState({}, document.title, newUrl);
       } else if (hash.includes('payment=cancel')) {
-        alert("Paiement annulé. Votre créneau n'a pas été réservé.");
+        alert("Paiement annulé.");
         const newUrl = window.location.pathname + window.location.hash.split('?')[0];
         window.history.replaceState({}, document.title, newUrl);
       }
@@ -2551,5 +2646,45 @@ export class MemberDashboardComponent implements OnInit {
     } catch (e) {
       return dateStr;
     }
+  }
+
+  selectDonationAmount(amount: number) {
+    this.selectedDonationAmount.set(amount);
+  }
+
+  getDonationPoints(amount: number): number {
+    return amount === 25 ? 200 : amount === 10 ? 70 : amount === 5 ? 30 : amount === 1 ? 5 : 0;
+  }
+
+  submitDonation() {
+    const amount = this.selectedDonationAmount();
+    if (amount <= 0) return;
+
+    this.donSaving.set(true);
+    const api = this.getApiUrl();
+    
+    const payload = {
+      nom_client: this.profile() ? `${this.profile()?.prenom} ${this.profile()?.nom}` : 'Donateur Anonyme',
+      email_client: this.profile()?.email || '',
+      telephone_client: this.profile()?.telephone || '',
+      prestation: 'Donation',
+      date_debut: '',
+      date_fin: '',
+      remarques: 'Soutien au club CombatFit',
+      user_id: this.profile()?.id || '',
+      type: 'donation',
+      amount: amount * 100
+    };
+
+    this.http.post<{ url: string }>(`${api}/stripe/create-checkout-session`, payload).subscribe({
+      next: (res) => {
+        window.location.href = res.url;
+      },
+      error: (err) => {
+        this.donSaving.set(false);
+        console.error("ERREUR STRIPE DONATION:", err);
+        alert("Erreur Stripe lors de l'initialisation du don : " + (err.error?.error || 'Veuillez réessayer.'));
+      }
+    });
   }
 }
