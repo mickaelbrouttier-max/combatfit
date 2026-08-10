@@ -284,7 +284,7 @@ export class TestimonialsComponent {
       name: 'Jocelyn',
       age: 30,
       initials: 'J',
-      rating: 100,
+      rating: 5,
       text: 'Une perte de poids énorme grâce à un coaching sur mesure et un suivi nutritionnel au top ! J\'ai retrouvé la forme et une confiance en moi incroyable.'
     }
   ];
