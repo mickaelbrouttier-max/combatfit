@@ -310,15 +310,34 @@ interface RewardItem {
               </div>
             </div>
 
+            <!-- Shop promo banner (Notre boutique en ligne) -->
+            <a href="https://combatfit-entrainement.tpopsite.com/product/tee-shirt-de-sport-combatfit" target="_blank" style="text-decoration: none; color: inherit; display: block; margin-bottom: 30px;">
+              <div class="shop-promo-banner interactive-banner">
+                <div class="pack-promo-content" style="display: flex; align-items: center; justify-content: space-between; gap: 20px; width: 100%;">
+                  <div style="display: flex; align-items: center; gap: 20px;">
+                    <span class="material-icons-outlined" style="font-size: 3rem; color: var(--accent-gold);">shopping_bag</span>
+                    <div>
+                      <h4 class="pack-promo-title" style="margin-bottom: 4px; color: var(--accent-gold);">Notre boutique en ligne ! 🛍️</h4>
+                      <p class="pack-promo-desc" style="margin: 0; color: var(--text-light-grey);">Découvrez nos t-shirts techniques officiels et autres équipements directement sur notre site partenaire.</p>
+                    </div>
+                  </div>
+                  <button class="action-btn" style="padding: 10px 20px; font-size: 0.85rem; margin: 0; flex-shrink: 0; background: var(--accent-gold); color: #000; border-radius: var(--border-radius-sm); border: none; font-weight: 700; text-transform: uppercase;">
+                    Visiter la boutique
+                  </button>
+                </div>
+              </div>
+            </a>
+
             <div class="rewards-grid">
               <div *ngFor="let r of rewards()" class="reward-card">
-                <div class="reward-image-container" [class.tshirt-container]="r.nom.includes('T-Shirt')">
+                <div class="reward-image-container" [class.tshirt-container]="r.nom.includes('T-Shirt')" [class.shaker-container]="r.nom.includes('Shaker')">
                   <ng-container *ngIf="r.nom.includes('T-Shirt')">
                     <img src="images/tshirt_front.png" class="reward-img tshirt-front" [alt]="r.nom" />
                     <img src="images/tshirt_back.png" class="reward-img tshirt-back" [alt]="r.nom" />
                   </ng-container>
                   <img *ngIf="r.nom.includes('Séance')" src="images/service_physique.png" [alt]="r.nom" class="reward-img" />
-                  <div *ngIf="!r.nom.includes('T-Shirt') && !r.nom.includes('Séance')" class="reward-image-placeholder">
+                  <img *ngIf="r.nom.includes('Shaker')" src="images/shaker.png" [alt]="r.nom" class="reward-img shaker-img" />
+                  <div *ngIf="!r.nom.includes('T-Shirt') && !r.nom.includes('Séance') && !r.nom.includes('Shaker')" class="reward-image-placeholder">
                     <span class="material-icons-outlined reward-gift-icon">card_giftcard</span>
                   </div>
                 </div>
@@ -1856,6 +1875,36 @@ interface RewardItem {
       text-align: left;
       box-shadow: var(--shadow-sm);
     }
+
+    /* Online Shop promo banner */
+    .shop-promo-banner {
+      background: linear-gradient(135deg, rgba(212, 175, 55, 0.15) 0%, rgba(13, 13, 17, 0.9) 100%);
+      border: 1px solid var(--accent-gold);
+      border-radius: var(--border-radius-lg);
+      padding: 24px;
+      margin-bottom: 30px;
+      text-align: left;
+      box-shadow: 0 0 20px rgba(212, 175, 55, 0.1);
+      position: relative;
+      overflow: hidden;
+      transition: all 0.3s ease;
+    }
+    
+    .shop-promo-banner::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(212, 175, 55, 0.05) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    
+    .shop-promo-banner:hover {
+      box-shadow: 0 0 30px rgba(212, 175, 55, 0.2);
+      transform: translateY(-2px);
+    }
     
     .pack-promo-content {
       display: flex;
@@ -2015,12 +2064,19 @@ interface RewardItem {
       transform: scale(1.05);
     }
 
+    .shaker-container {
+      cursor: pointer;
+    }
+
+    .shaker-container:hover .shaker-img {
+      transform: scale(1.1) rotate(3deg);
+    }
+
     .obj-date-label {
       font-size: 0.75rem;
       color: rgba(50, 205, 50, 0.75);
       font-weight: 500;
       margin-top: 2px;
-    }
     }
   `]
 })
