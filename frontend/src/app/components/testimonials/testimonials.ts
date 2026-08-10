@@ -279,6 +279,13 @@ export class TestimonialsComponent {
       initials: 'J',
       rating: 5,
       text: 'Super coach, à l\'écoute et passionné. J\'ai progressé autant physiquement que mentalement.'
+    },
+    {
+      name: 'Jocelyn',
+      age: 29,
+      initials: 'J',
+      rating: 5,
+      text: 'Une perte de poids énorme grâce à un coaching sur mesure et un suivi nutritionnel au top ! J\'ai retrouvé la forme et une confiance en moi incroyable.'
     }
   ];
 
@@ -300,20 +307,20 @@ export class TestimonialsComponent {
 
   nextSlide() {
     const maxIndex = window.innerWidth > 1024 
-      ? 0 // No sliding needed if 3 fit
+      ? Math.max(0, this.items.length - 3)
       : window.innerWidth > 768 
-        ? this.items.length - 2 
-        : this.items.length - 1;
+        ? Math.max(0, this.items.length - 2)
+        : Math.max(0, this.items.length - 1);
         
     this.currentIndex.update(index => index >= maxIndex ? 0 : index + 1);
   }
 
   prevSlide() {
     const maxIndex = window.innerWidth > 1024 
-      ? 0 
+      ? Math.max(0, this.items.length - 3)
       : window.innerWidth > 768 
-        ? this.items.length - 2 
-        : this.items.length - 1;
+        ? Math.max(0, this.items.length - 2)
+        : Math.max(0, this.items.length - 1);
 
     this.currentIndex.update(index => index <= 0 ? maxIndex : index - 1);
   }
