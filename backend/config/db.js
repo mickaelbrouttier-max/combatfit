@@ -156,10 +156,10 @@ db.getConnection()
       // S'assurer que le Shaker CombatFit est présent en BDD
       const [shakerRows] = await connection.query("SELECT * FROM rewards WHERE nom = 'Shaker CombatFit'");
       if (shakerRows.length === 0) {
-        await connection.query("INSERT INTO rewards (nom, description, cout_points, stock) VALUES ('Shaker CombatFit', 'Le shaker officiel CombatFit pour vos protéines', 250, 100)");
+        await connection.query("INSERT INTO rewards (nom, description, cout_points, stock) VALUES ('Shaker CombatFit', 'Le shaker officiel CombatFit pour vos protéines', 600, 100)");
         console.log("👉 Shaker CombatFit ajouté à la table 'rewards'.");
       } else {
-        await connection.query("UPDATE rewards SET description = 'Le shaker officiel CombatFit pour vos protéines', cout_points = 250 WHERE nom = 'Shaker CombatFit'");
+        await connection.query("UPDATE rewards SET description = 'Le shaker officiel CombatFit pour vos protéines', cout_points = 600 WHERE nom = 'Shaker CombatFit'");
       }
 
       // 8. Insertion des badges par défaut s'il n'y en a aucun
@@ -186,7 +186,7 @@ db.getConnection()
         const defaultRewards = [
           ['Séance offerte', '1 séance de coaching de 90 min offerte', 1000, -1],
           ['T-Shirt CombatFit', 'Le t-shirt officiel pour vos entraînement', 750, 50],
-          ['Shaker CombatFit', 'Le shaker officiel CombatFit pour vos protéines', 250, 100]
+          ['Shaker CombatFit', 'Le shaker officiel CombatFit pour vos protéines', 600, 100]
         ];
         for (const r of defaultRewards) {
           await connection.query("INSERT INTO rewards (nom, description, cout_points, stock) VALUES (?, ?, ?, ?)", r);
